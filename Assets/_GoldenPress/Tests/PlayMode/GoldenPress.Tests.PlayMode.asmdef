@@ -1,0 +1,23 @@
+{
+    "name": "GoldenPress.Tests.PlayMode",
+    "rootNamespace": "GoldenPress.Tests",
+    "references": [
+        "GoldenPress.Core",
+        "GoldenPress.Gameplay",
+        "GoldenPress.UI",
+        "GoldenPress.Bootstrap",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,20 @@
+{
+    "name": "GoldenPress.Bootstrap",
+    "rootNamespace": "GoldenPress.Bootstrap",
+    "references": [
+        "GoldenPress.Core",
+        "GoldenPress.Gameplay",
+        "GoldenPress.UI",
+        "Unity.TextMeshPro",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

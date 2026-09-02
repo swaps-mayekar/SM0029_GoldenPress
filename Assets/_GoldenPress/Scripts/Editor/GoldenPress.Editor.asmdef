@@ -1,0 +1,22 @@
+{
+    "name": "GoldenPress.Editor",
+    "rootNamespace": "GoldenPress.EditorTools",
+    "references": [
+        "GoldenPress.Core",
+        "GoldenPress.Gameplay",
+        "GoldenPress.UI",
+        "GoldenPress.Bootstrap",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

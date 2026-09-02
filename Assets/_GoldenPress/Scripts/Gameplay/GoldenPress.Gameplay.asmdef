@@ -1,0 +1,16 @@
+{
+    "name": "GoldenPress.Gameplay",
+    "rootNamespace": "GoldenPress.Gameplay",
+    "references": [
+        "GoldenPress.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

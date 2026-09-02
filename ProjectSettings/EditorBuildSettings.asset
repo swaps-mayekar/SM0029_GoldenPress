@@ -8,6 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/0_SplashScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/1_MainMillScene.unity
+    guid: 086ccb63ab3b6447e93a188adc085b83
+  - enabled: 1
+    path: Assets/Scenes/2_ProductionScene.unity
+    guid: 4b4d278e72f5f49a99365c770f55e920
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 3590b91b4603b465dbb4216d601bff33, type: 3}
   m_UseUCBPForAssetBundles: 0
