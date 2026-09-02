@@ -99,6 +99,65 @@ namespace GoldenPress.UI
             return rt;
         }
 
+        public static Image CreateArtImage(Transform parent, string name, Sprite sprite, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax, Color? color = null, bool preserveAspect = true)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var rt = go.GetComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin;
+            rt.offsetMax = offsetMax;
+
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite != null ? sprite : GameTheme.WhiteSprite;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = preserveAspect;
+            image.color = color ?? Color.white;
+            image.raycastTarget = false;
+            return image;
+        }
+
+        public static RectTransform CreateFramedPanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+        {
+            var frameSprite = ArtCatalog.PanelFrame;
+            if (frameSprite == null)
+            {
+                return CreatePanel(parent, name, GameTheme.Panel, anchorMin, anchorMax, offsetMin, offsetMax);
+            }
+
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var rt = go.GetComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin;
+            rt.offsetMax = offsetMax;
+
+            var image = go.GetComponent<Image>();
+            image.sprite = frameSprite;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = false;
+            image.color = Color.white;
+            return rt;
+        }
+
+        public static RectTransform CreateFullscreenBackground(Transform parent, Sprite sprite, Color fallback)
+        {
+            var bg = CreateArtImage(parent, "Background", sprite,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, Color.white, false);
+            if (sprite == null)
+            {
+                bg.sprite = GameTheme.WhiteSprite;
+                bg.color = fallback;
+                bg.preserveAspect = false;
+            }
+
+            bg.raycastTarget = false;
+            bg.transform.SetAsFirstSibling();
+            return bg.rectTransform;
+        }
+
         public static Text CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Text));

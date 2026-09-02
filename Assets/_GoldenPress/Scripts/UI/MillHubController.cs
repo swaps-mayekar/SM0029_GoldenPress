@@ -43,12 +43,14 @@ namespace GoldenPress.UI
             {
                 _session.Production.ClearCommittedSession();
             }
+
             if (GetComponent<AudioService>() == null)
             {
                 gameObject.AddComponent<AudioService>();
             }
 
             AudioService.Instance.Muted = _session.State.muted;
+            ArtCatalog.Warm();
             BuildUi();
             Refresh();
         }
@@ -85,34 +87,44 @@ namespace GoldenPress.UI
 
         private void BuildBackdrop(RectTransform root)
         {
-            var mill = UiFactory.CreatePanel(root, "MillSilhouette", GameTheme.Wood,
-                new Vector2(0.08f, 0.18f), new Vector2(0.42f, 0.72f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(mill, "MillLabel", "Wooden Oil Mill", 28, Color.white, TextAnchor.UpperCenter, FontStyle.Bold);
+            UiFactory.CreateFullscreenBackground(root, ArtCatalog.HubBackground, GameTheme.Background);
+            UiFactory.CreatePanel(root, "SoftVeil", new Color(1f, 0.95f, 0.85f, 0.16f),
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            var press = UiFactory.CreatePanel(mill, "Press", GameTheme.WoodDark,
-                new Vector2(0.2f, 0.15f), new Vector2(0.8f, 0.55f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(press, "PressLabel", "Father's Press", 22, GameTheme.AccentSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var mill = UiFactory.CreateFramedPanel(root, "MillSilhouette",
+                new Vector2(0.05f, 0.18f), new Vector2(0.40f, 0.74f), Vector2.zero, Vector2.zero);
+            UiFactory.CreateArtImage(mill, "PressArt", ArtCatalog.WoodenPress,
+                new Vector2(0.12f, 0.10f), new Vector2(0.88f, 0.82f), Vector2.zero, Vector2.zero);
+            PlaceLabel(mill, "MillLabel", "Father's Wooden Press", 24, GameTheme.WoodDark, 0.84f, 0.98f);
 
-            var tank = UiFactory.CreatePanel(root, "Tank", new Color(0.75f, 0.82f, 0.88f),
-                new Vector2(0.45f, 0.22f), new Vector2(0.62f, 0.58f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(tank, "TankLabel", "Oil Tank", 22, GameTheme.TextDark, TextAnchor.UpperCenter, FontStyle.Bold);
+            var tank = UiFactory.CreateFramedPanel(root, "Tank",
+                new Vector2(0.42f, 0.20f), new Vector2(0.62f, 0.58f), Vector2.zero, Vector2.zero);
+            UiFactory.CreateArtImage(tank, "TankArt", ArtCatalog.OilTank,
+                new Vector2(0.12f, 0.08f), new Vector2(0.88f, 0.78f), Vector2.zero, Vector2.zero);
+            PlaceLabel(tank, "TankLabel", "Oil Tank", 22, GameTheme.TextDark, 0.82f, 0.98f);
 
-            var shop = UiFactory.CreatePanel(root, "Shop", GameTheme.PanelDark,
-                new Vector2(0.66f, 0.22f), new Vector2(0.92f, 0.62f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(shop, "ShopLabel", "Family Shop", 24, Color.white, TextAnchor.UpperCenter, FontStyle.Bold);
+            var shop = UiFactory.CreateFramedPanel(root, "Shop",
+                new Vector2(0.64f, 0.20f), new Vector2(0.95f, 0.62f), Vector2.zero, Vector2.zero);
+            UiFactory.CreateArtImage(shop, "ShopArt", ArtCatalog.FamilyShop,
+                new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.78f), Vector2.zero, Vector2.zero);
+            PlaceLabel(shop, "ShopLabel", "Family Shop", 22, GameTheme.WoodDark, 0.82f, 0.98f);
+
+            StartCoroutine(SimpleTween.ScalePunch(mill, 1.02f, 0.4f));
         }
 
         private void BuildTopBar(RectTransform root)
         {
-            var top = UiFactory.CreatePanel(root, "TopBar", GameTheme.Panel,
+            var top = UiFactory.CreateFramedPanel(root, "TopBar",
                 new Vector2(0.02f, 0.86f), new Vector2(0.98f, 0.97f), Vector2.zero, Vector2.zero);
+
+            UiFactory.CreateArtImage(top, "CoinIcon", ArtCatalog.Coin,
+                new Vector2(0.01f, 0.18f), new Vector2(0.07f, 0.82f), Vector2.zero, Vector2.zero);
+
             _moneyText = UiFactory.CreateText(top, "Money", "Coins: 0", 30, GameTheme.TextDark, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _moneyText.rectTransform.anchorMin = new Vector2(0.02f, 0f);
-            _moneyText.rectTransform.anchorMax = new Vector2(0.35f, 1f);
+            Place(_moneyText.rectTransform, 0.08f, 0f, 0.38f, 1f);
 
             _storageText = UiFactory.CreateText(top, "Storage", "Storage: 0/20 L", 26, GameTheme.TextMuted, TextAnchor.MiddleCenter);
-            _storageText.rectTransform.anchorMin = new Vector2(0.35f, 0f);
-            _storageText.rectTransform.anchorMax = new Vector2(0.7f, 1f);
+            Place(_storageText.rectTransform, 0.38f, 0f, 0.72f, 1f);
 
             var mute = UiFactory.CreateButton(top, "MuteButton", "Mute", GameTheme.AccentSoft,
                 new Vector2(0.78f, 0.15f), new Vector2(0.97f, 0.85f), Vector2.zero, Vector2.zero);
@@ -128,23 +140,23 @@ namespace GoldenPress.UI
         private void BuildCenterStage(RectTransform root)
         {
             _unlockText = UiFactory.CreateText(root, "UnlockProgress", "", 22, GameTheme.TextMuted, TextAnchor.MiddleLeft);
-            _unlockText.rectTransform.anchorMin = new Vector2(0.08f, 0.12f);
-            _unlockText.rectTransform.anchorMax = new Vector2(0.55f, 0.2f);
+            Place(_unlockText.rectTransform, 0.08f, 0.12f, 0.55f, 0.2f);
 
             _statusText = UiFactory.CreateText(root, "Status", "", 24, GameTheme.Success, TextAnchor.MiddleRight);
-            _statusText.rectTransform.anchorMin = new Vector2(0.55f, 0.12f);
-            _statusText.rectTransform.anchorMax = new Vector2(0.92f, 0.2f);
+            Place(_statusText.rectTransform, 0.55f, 0.12f, 0.92f, 0.2f);
         }
 
         private void BuildOrderCard(RectTransform root)
         {
-            var card = UiFactory.CreatePanel(root, "OrderCard", GameTheme.Panel,
-                new Vector2(0.45f, 0.62f), new Vector2(0.92f, 0.84f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(card, "OrderTitle", "Current Order", 24, GameTheme.WoodDark, TextAnchor.UpperLeft, FontStyle.Bold)
-                .rectTransform.offsetMin = new Vector2(18, -8);
+            var card = UiFactory.CreateFramedPanel(root, "OrderCard",
+                new Vector2(0.42f, 0.62f), new Vector2(0.95f, 0.84f), Vector2.zero, Vector2.zero);
+            PlaceLabel(card, "OrderTitle", "Current Order", 24, GameTheme.WoodDark, 0.72f, 0.95f, TextAnchor.UpperLeft);
+
+            UiFactory.CreateArtImage(card, "BottleIcon", ArtCatalog.OilBottle,
+                new Vector2(0.78f, 0.18f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero);
+
             _orderText = UiFactory.CreateText(card, "OrderBody", "", 24, GameTheme.TextDark, TextAnchor.MiddleLeft);
-            _orderText.rectTransform.offsetMin = new Vector2(18, 8);
-            _orderText.rectTransform.offsetMax = new Vector2(-18, -36);
+            Place(_orderText.rectTransform, 0.05f, 0.08f, 0.76f, 0.72f);
         }
 
         private void BuildActions(RectTransform root)
@@ -178,25 +190,26 @@ namespace GoldenPress.UI
 
         private void BuildTutorialBanner(RectTransform root)
         {
-            var banner = UiFactory.CreatePanel(root, "TutorialBanner", new Color(1f, 0.96f, 0.82f, 0.95f),
-                new Vector2(0.08f, 0.74f), new Vector2(0.42f, 0.84f), Vector2.zero, Vector2.zero);
+            var banner = UiFactory.CreateFramedPanel(root, "TutorialBanner",
+                new Vector2(0.05f, 0.74f), new Vector2(0.40f, 0.84f), Vector2.zero, Vector2.zero);
             _tutorialText = UiFactory.CreateText(banner, "TutorialText", "", 22, GameTheme.TextDark, TextAnchor.MiddleCenter);
-            _tutorialText.rectTransform.offsetMin = new Vector2(12, 8);
-            _tutorialText.rectTransform.offsetMax = new Vector2(-12, -8);
+            _tutorialText.rectTransform.offsetMin = new Vector2(18, 12);
+            _tutorialText.rectTransform.offsetMax = new Vector2(-18, -12);
         }
 
         private void BuildOrderPanel(RectTransform root)
         {
             _orderPanel = UiFactory.CreatePanel(root, "OrderPanel", GameTheme.Overlay,
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject;
-            var card = UiFactory.CreatePanel(_orderPanel.transform, "OrderDetail", GameTheme.Panel,
-                new Vector2(0.25f, 0.25f), new Vector2(0.75f, 0.75f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(card, "Title", "Pending Customer Order", 32, GameTheme.WoodDark, TextAnchor.UpperCenter, FontStyle.Bold)
-                .rectTransform.offsetMin = new Vector2(20, -20);
-            var body = UiFactory.CreateText(card, "Body", "", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
-            body.rectTransform.offsetMin = new Vector2(30, 70);
-            body.rectTransform.offsetMax = new Vector2(-30, -70);
-            body.name = "OrderDetailBody";
+            var card = UiFactory.CreateFramedPanel(_orderPanel.transform, "OrderDetail",
+                new Vector2(0.22f, 0.22f), new Vector2(0.78f, 0.78f), Vector2.zero, Vector2.zero);
+
+            UiFactory.CreateArtImage(card, "Logo", ArtCatalog.LogoMark,
+                new Vector2(0.42f, 0.72f), new Vector2(0.58f, 0.92f), Vector2.zero, Vector2.zero);
+            PlaceLabel(card, "Title", "Pending Customer Order", 32, GameTheme.WoodDark, 0.58f, 0.72f);
+
+            var body = UiFactory.CreateText(card, "OrderDetailBody", "", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
+            Place(body.rectTransform, 0.1f, 0.28f, 0.9f, 0.58f);
 
             var close = UiFactory.CreateButton(card, "Close", "Got it", GameTheme.Accent,
                 new Vector2(0.3f, 0.08f), new Vector2(0.7f, 0.22f), Vector2.zero, Vector2.zero);
@@ -215,15 +228,15 @@ namespace GoldenPress.UI
         {
             _upgradePanel = UiFactory.CreatePanel(root, "UpgradePanel", GameTheme.Overlay,
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).gameObject;
-            var card = UiFactory.CreatePanel(_upgradePanel.transform, "UpgradeCard", GameTheme.Panel,
-                new Vector2(0.18f, 0.18f), new Vector2(0.82f, 0.82f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(card, "Title", "Mill Upgrades", 34, GameTheme.WoodDark, TextAnchor.UpperCenter, FontStyle.Bold);
+            var card = UiFactory.CreateFramedPanel(_upgradePanel.transform, "UpgradeCard",
+                new Vector2(0.16f, 0.14f), new Vector2(0.84f, 0.86f), Vector2.zero, Vector2.zero);
+            PlaceLabel(card, "Title", "Mill Upgrades", 34, GameTheme.WoodDark, 0.88f, 0.98f);
 
-            float y = 0.62f;
+            float y = 0.72f;
             foreach (UpgradeType type in System.Enum.GetValues(typeof(UpgradeType)))
             {
                 var button = UiFactory.CreateButton(card, type + "Upgrade", "Upgrade", GameTheme.AccentSoft,
-                    new Vector2(0.1f, y - 0.12f), new Vector2(0.9f, y), Vector2.zero, Vector2.zero);
+                    new Vector2(0.1f, y - 0.14f), new Vector2(0.9f, y), Vector2.zero, Vector2.zero);
                 var captured = type;
                 button.onClick.AddListener(() =>
                 {
@@ -234,11 +247,11 @@ namespace GoldenPress.UI
                 });
                 _upgradeButtons.Add(button);
                 _upgradeLabels.Add(button.GetComponentInChildren<Text>());
-                y -= 0.16f;
+                y -= 0.18f;
             }
 
             var close = UiFactory.CreateButton(card, "CloseUpgrades", "Close", GameTheme.Wood,
-                new Vector2(0.35f, 0.05f), new Vector2(0.65f, 0.14f), Vector2.zero, Vector2.zero);
+                new Vector2(0.35f, 0.04f), new Vector2(0.65f, 0.14f), Vector2.zero, Vector2.zero);
             close.onClick.AddListener(() => _upgradePanel.SetActive(false));
             _upgradePanel.SetActive(false);
         }
@@ -253,14 +266,6 @@ namespace GoldenPress.UI
 
         private void OnInspectOrder()
         {
-            if (_session.Tutorial.IsActive && !_session.Tutorial.IsStepAllowed(TutorialStep.InspectOrder)
-                && _session.Tutorial.CurrentStep != TutorialStep.PurchaseMaterials
-                && _session.Tutorial.CurrentStep != TutorialStep.FulfillOrder
-                && _session.Tutorial.CurrentStep != TutorialStep.StartProduction)
-            {
-                // Allow viewing order freely after first inspect, but not before required step when on later exclusive steps.
-            }
-
             var order = _session.Orders.Current;
             var oil = _session.Balance.GetOil(order.oilId);
             var body = _orderPanel.transform.Find("OrderDetail/OrderDetailBody")?.GetComponent<Text>();
@@ -270,10 +275,6 @@ namespace GoldenPress.UI
             }
 
             _orderPanel.SetActive(true);
-            if (_session.Tutorial.CurrentStep == TutorialStep.InspectOrder)
-            {
-                // Closed via Got it advances tutorial.
-            }
         }
 
         private void OnProduce()
@@ -385,6 +386,20 @@ namespace GoldenPress.UI
                 _upgradeLabels[i].text = $"{def.displayName}  (Tier {tier}/{def.maxTier})\n{def.description}\n{costLabel}";
                 _upgradeButtons[i].interactable = _session.Upgrades.CanPurchase(type);
             }
+        }
+
+        private static void Place(RectTransform rt, float minX, float minY, float maxX, float maxY)
+        {
+            rt.anchorMin = new Vector2(minX, minY);
+            rt.anchorMax = new Vector2(maxX, maxY);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        private static void PlaceLabel(Transform parent, string name, string content, int size, Color color, float minY, float maxY, TextAnchor anchor = TextAnchor.UpperCenter)
+        {
+            var text = UiFactory.CreateText(parent, name, content, size, color, anchor, FontStyle.Bold);
+            Place(text.rectTransform, 0.05f, minY, 0.95f, maxY);
         }
 
         private static void EnsureEventSystem()

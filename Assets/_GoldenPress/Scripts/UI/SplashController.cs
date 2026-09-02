@@ -16,18 +16,14 @@ namespace GoldenPress.UI
         private void Start()
         {
             EnsureEventSystem();
+            ArtCatalog.Warm();
             BuildUi();
-            _autoLoadAt = Time.unscaledTime + 2f;
+            _autoLoadAt = Time.unscaledTime + 2.4f;
         }
 
         private void Update()
         {
-            if (_loading)
-            {
-                return;
-            }
-
-            if (Time.unscaledTime >= _autoLoadAt)
+            if (!_loading && Time.unscaledTime >= _autoLoadAt)
             {
                 BeginGame();
             }
@@ -60,23 +56,43 @@ namespace GoldenPress.UI
             var root = UiFactory.CreatePanel(canvas.transform, "SafeRoot", Color.clear, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             UiFactory.ApplySafeArea(root);
 
-            var card = UiFactory.CreatePanel(root, "Card", GameTheme.Panel,
-                new Vector2(0.2f, 0.22f), new Vector2(0.8f, 0.78f), Vector2.zero, Vector2.zero);
+            UiFactory.CreateFullscreenBackground(root, ArtCatalog.SplashHero, GameTheme.Background);
+            UiFactory.CreatePanel(root, "Veil", new Color(0.18f, 0.10f, 0.05f, 0.28f),
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            UiFactory.CreateText(card, "Title", "Golden Press", 64, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Bold)
-                .rectTransform.offsetMax = new Vector2(-20, -40);
-            UiFactory.CreateText(card, "Subtitle", "Continue Father's legacy", 30, GameTheme.TextMuted, TextAnchor.MiddleCenter)
-                .rectTransform.offsetMin = new Vector2(20, 80);
-            UiFactory.CreateText(card, "Subtitle2", "A cozy oil mill for quiet evenings", 24, GameTheme.TextMuted, TextAnchor.MiddleCenter)
-                .rectTransform.offsetMin = new Vector2(20, 30);
+            var card = UiFactory.CreateFramedPanel(root, "Card",
+                new Vector2(0.22f, 0.18f), new Vector2(0.78f, 0.82f), Vector2.zero, Vector2.zero);
 
-            _status = UiFactory.CreateText(root, "Status", "Loading your family mill...", 26, GameTheme.TextDark, TextAnchor.LowerCenter);
-            _status.rectTransform.anchorMin = new Vector2(0.2f, 0.16f);
-            _status.rectTransform.anchorMax = new Vector2(0.8f, 0.24f);
+            UiFactory.CreateArtImage(card, "Logo", ArtCatalog.LogoMark,
+                new Vector2(0.38f, 0.62f), new Vector2(0.62f, 0.88f), Vector2.zero, Vector2.zero);
+
+            var title = UiFactory.CreateText(card, "Title", "Golden Press", 64, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            title.rectTransform.anchorMin = new Vector2(0.08f, 0.40f);
+            title.rectTransform.anchorMax = new Vector2(0.92f, 0.58f);
+            title.rectTransform.offsetMin = Vector2.zero;
+            title.rectTransform.offsetMax = Vector2.zero;
+
+            var subtitle = UiFactory.CreateText(card, "Subtitle", "Continue Father's legacy", 30, GameTheme.TextMuted, TextAnchor.MiddleCenter);
+            subtitle.rectTransform.anchorMin = new Vector2(0.1f, 0.28f);
+            subtitle.rectTransform.anchorMax = new Vector2(0.9f, 0.40f);
+            subtitle.rectTransform.offsetMin = Vector2.zero;
+            subtitle.rectTransform.offsetMax = Vector2.zero;
+
+            var line = UiFactory.CreateText(card, "Subtitle2", "A cozy oil mill for quiet evenings", 24, GameTheme.TextMuted, TextAnchor.MiddleCenter);
+            line.rectTransform.anchorMin = new Vector2(0.1f, 0.18f);
+            line.rectTransform.anchorMax = new Vector2(0.9f, 0.28f);
+            line.rectTransform.offsetMin = Vector2.zero;
+            line.rectTransform.offsetMax = Vector2.zero;
+
+            _status = UiFactory.CreateText(root, "Status", "Loading your family mill...", 26, Color.white, TextAnchor.LowerCenter);
+            _status.rectTransform.anchorMin = new Vector2(0.2f, 0.14f);
+            _status.rectTransform.anchorMax = new Vector2(0.8f, 0.22f);
 
             var begin = UiFactory.CreateButton(root, "BeginButton", "Enter the Mill", GameTheme.Accent,
-                new Vector2(0.35f, 0.06f), new Vector2(0.65f, 0.14f), Vector2.zero, Vector2.zero);
+                new Vector2(0.35f, 0.05f), new Vector2(0.65f, 0.13f), Vector2.zero, Vector2.zero);
             begin.onClick.AddListener(BeginGame);
+
+            StartCoroutine(SimpleTween.ScalePunch(card, 1.03f, 0.35f));
         }
 
         private static void EnsureEventSystem()

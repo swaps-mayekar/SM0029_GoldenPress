@@ -32,6 +32,7 @@ namespace GoldenPress.EditorTools
                 new EditorBuildSettingsScene($"{ScenesFolder}/2_ProductionScene.unity", true)
             };
             EditorBuildSettings.scenes = scenes;
+            GoldenPressArtImporter.ConfigureArtImportSettings();
             AssetDatabase.SaveAssets();
             Debug.Log("Golden Press scenes and build settings are ready.");
         }

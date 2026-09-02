@@ -47,6 +47,7 @@ namespace GoldenPress.UI
 
         private void BuildUi()
         {
+            ArtCatalog.Warm();
             if (Camera.main != null)
             {
                 Camera.main.backgroundColor = Color.Lerp(GameTheme.Background, _oil.oilColor, 0.15f);
@@ -56,7 +57,11 @@ namespace GoldenPress.UI
             _root = UiFactory.CreatePanel(canvas.transform, "SafeRoot", Color.clear, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             UiFactory.ApplySafeArea(_root);
 
-            var top = UiFactory.CreatePanel(_root, "Top", GameTheme.Panel,
+            UiFactory.CreateFullscreenBackground(_root, ArtCatalog.ProductionBackground, GameTheme.Background);
+            UiFactory.CreatePanel(_root, "SoftVeil", new Color(1f, 0.94f, 0.84f, 0.22f),
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            var top = UiFactory.CreateFramedPanel(_root, "Top",
                 new Vector2(0.03f, 0.86f), new Vector2(0.97f, 0.97f), Vector2.zero, Vector2.zero);
             _headerText = UiFactory.CreateText(top, "Header", "", 30, GameTheme.TextDark, TextAnchor.MiddleLeft, FontStyle.Bold);
             _headerText.rectTransform.offsetMin = new Vector2(20, 0);
@@ -178,8 +183,10 @@ namespace GoldenPress.UI
                 SceneManager.LoadScene(SceneNames.MainMill);
             });
 
-            var panel = UiFactory.CreatePanel(_stageRoot.transform, "Summary", GameTheme.Panel,
+            var panel = UiFactory.CreateFramedPanel(_stageRoot.transform, "Summary",
                 new Vector2(0.2f, 0.25f), new Vector2(0.8f, 0.75f), Vector2.zero, Vector2.zero);
+            UiFactory.CreateArtImage(panel, "Bottle", ArtCatalog.OilBottle,
+                new Vector2(0.35f, 0.55f), new Vector2(0.65f, 0.92f), Vector2.zero, Vector2.zero);
             UiFactory.CreateText(panel, "Body",
                 "The oil is in your storage tank.\nDeliver it to complete the order.",
                 28, GameTheme.TextDark, TextAnchor.MiddleCenter);
@@ -246,9 +253,8 @@ namespace GoldenPress.UI
             _counter.rectTransform.anchorMin = new Vector2(0.3f, 0.88f);
             _counter.rectTransform.anchorMax = new Vector2(0.7f, 1f);
 
-            var basket = UiFactory.CreatePanel(transform, "Basket", GameTheme.Wood,
-                new Vector2(0.35f, 0.02f), new Vector2(0.65f, 0.18f), Vector2.zero, Vector2.zero);
-            UiFactory.CreateText(basket, "Label", "Basket", 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiFactory.CreateArtImage(transform, "BasketArt", ArtCatalog.Basket,
+                new Vector2(0.35f, 0.0f), new Vector2(0.65f, 0.22f), Vector2.zero, Vector2.zero);
         }
 
         private void Update()
@@ -295,12 +301,13 @@ namespace GoldenPress.UI
         {
             _spawned++;
             bool isGood = UnityEngine.Random.value > 0.3f;
-            var color = isGood ? _oil.seedColor : new Color(0.35f, 0.35f, 0.35f);
-            var panel = UiFactory.CreatePanel(transform, isGood ? "Seed" : "Debris", color,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            panel.anchorMin = new Vector2(0.5f, 0.5f);
-            panel.anchorMax = new Vector2(0.5f, 0.5f);
-            panel.sizeDelta = new Vector2(70, 70);
+            var sprite = isGood ? ArtCatalog.SeedForOil(_oil.id) : ArtCatalog.Debris;
+            var tint = isGood ? Color.Lerp(Color.white, _oil.seedColor, 0.25f) : Color.white;
+            var image = UiFactory.CreateArtImage(transform, isGood ? "Seed" : "Debris", sprite,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, tint, true);
+            image.raycastTarget = true;
+            var panel = image.rectTransform;
+            panel.sizeDelta = new Vector2(96, 96);
             float width = Mathf.Max(200f, _area.rect.width);
             float height = Mathf.Max(200f, _area.rect.height);
             panel.anchoredPosition = new Vector2(UnityEngine.Random.Range(-width * 0.4f, width * 0.4f), height * 0.35f);
@@ -394,6 +401,9 @@ namespace GoldenPress.UI
             _forgiveness = forgiveness;
             _onComplete = onComplete;
 
+            UiFactory.CreateArtImage(transform, "PressArt", ArtCatalog.WoodenPress,
+                new Vector2(0.32f, 0.38f), new Vector2(0.68f, 0.92f), Vector2.zero, Vector2.zero);
+
             var track = UiFactory.CreatePanel(transform, "Track", GameTheme.WoodDark,
                 new Vector2(0.2f, 0.2f), new Vector2(0.8f, 0.35f), Vector2.zero, Vector2.zero);
 
@@ -404,9 +414,9 @@ namespace GoldenPress.UI
             _bar = UiFactory.CreatePanel(track, "Bar", GameTheme.Accent,
                 new Vector2(0f, 0.05f), new Vector2(0.02f, 0.95f), Vector2.zero, Vector2.zero).GetComponent<Image>();
 
-            _label = UiFactory.CreateText(transform, "Label", "Hold anywhere to press", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
-            _label.rectTransform.anchorMin = new Vector2(0.2f, 0.45f);
-            _label.rectTransform.anchorMax = new Vector2(0.8f, 0.55f);
+            _label = UiFactory.CreateText(transform, "Label", "Hold to press Father's mill", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
+            _label.rectTransform.anchorMin = new Vector2(0.2f, 0.36f);
+            _label.rectTransform.anchorMax = new Vector2(0.8f, 0.46f);
 
             var holdButton = UiFactory.CreateButton(transform, "HoldArea", "Hold to Press", GameTheme.Wood,
                 new Vector2(0.3f, 0.05f), new Vector2(0.7f, 0.16f), Vector2.zero, Vector2.zero);
@@ -479,15 +489,19 @@ namespace GoldenPress.UI
             _forgiveness = forgiveness;
             _onComplete = onComplete;
 
-            var bottle = UiFactory.CreatePanel(transform, "Bottle", new Color(0.85f, 0.9f, 0.95f),
-                new Vector2(0.38f, 0.2f), new Vector2(0.62f, 0.75f), Vector2.zero, Vector2.zero);
+            var bottleFrame = UiFactory.CreateFramedPanel(transform, "BottleFrame",
+                new Vector2(0.34f, 0.18f), new Vector2(0.66f, 0.78f), Vector2.zero, Vector2.zero);
 
-            _fillImage = UiFactory.CreatePanel(bottle, "Fill", _oil.oilColor,
-                new Vector2(0.15f, 0.05f), new Vector2(0.85f, 0.05f), Vector2.zero, Vector2.zero).GetComponent<Image>();
+            UiFactory.CreateArtImage(bottleFrame, "BottleArt", ArtCatalog.OilBottle,
+                new Vector2(0.15f, 0.08f), new Vector2(0.85f, 0.92f), Vector2.zero, Vector2.zero,
+                Color.Lerp(Color.white, oil.oilColor, 0.15f));
+
+            _fillImage = UiFactory.CreatePanel(bottleFrame, "Fill", new Color(oil.oilColor.r, oil.oilColor.g, oil.oilColor.b, 0.55f),
+                new Vector2(0.28f, 0.12f), new Vector2(0.72f, 0.12f), Vector2.zero, Vector2.zero).GetComponent<Image>();
 
             var window = Mathf.Clamp01(_oil.bottlingWindow + _forgiveness);
-            _target = UiFactory.CreatePanel(bottle, "Target", new Color(1f, 1f, 1f, 0.35f),
-                new Vector2(0.05f, 0.7f - window), new Vector2(0.95f, 0.7f + window * 0.15f), Vector2.zero, Vector2.zero).GetComponent<Image>();
+            _target = UiFactory.CreatePanel(bottleFrame, "Target", new Color(1f, 1f, 1f, 0.35f),
+                new Vector2(0.18f, 0.68f - window), new Vector2(0.82f, 0.68f + window * 0.15f), Vector2.zero, Vector2.zero).GetComponent<Image>();
 
             _label = UiFactory.CreateText(transform, "Label", "Bottle 1 / 4 — tap to stop", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
             _label.rectTransform.anchorMin = new Vector2(0.2f, 0.05f);
@@ -510,7 +524,7 @@ namespace GoldenPress.UI
             }
 
             var rt = _fillImage.rectTransform;
-            rt.anchorMax = new Vector2(0.85f, 0.05f + _fill * 0.9f);
+            rt.anchorMax = new Vector2(0.72f, 0.12f + _fill * 0.7f);
         }
 
         private void StopFill()
@@ -542,7 +556,7 @@ namespace GoldenPress.UI
             _running = true;
             _label.text = $"Bottle {_bottleIndex + 1} / {BottleCount} — tap to stop";
             var fillRt = _fillImage.rectTransform;
-            fillRt.anchorMax = new Vector2(0.85f, 0.05f);
+            fillRt.anchorMax = new Vector2(0.72f, 0.12f);
         }
     }
 }
