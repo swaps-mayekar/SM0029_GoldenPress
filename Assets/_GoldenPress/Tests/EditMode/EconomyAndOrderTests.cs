@@ -53,13 +53,28 @@ namespace GoldenPress.Tests
         }
 
         [Test]
-        public void CannotAfford_ProcessingFee_FailsAtomically()
+        public void CannotAfford_ProcessingFee_FailsAtomically_WhenOrderAlreadyFulfillable()
         {
+            // Give enough oil to fulfill, then drain money — production should still fail.
+            _session.State.SetOilLiters(OilIds.Groundnut, _session.Orders.Current.litersRequired);
             _session.State.money = 0;
             var result = _session.Production.TryBeginForCurrentOrder();
             Assert.IsFalse(result.Success);
             Assert.IsFalse(_session.Production.HasActiveSession);
             Assert.AreEqual(0, _session.State.money);
+        }
+
+        [Test]
+        public void SoftLock_FathersSavingsCoverMaterials_WhenBrokeAndCannotFulfill()
+        {
+            _session.State.money = 5;
+            _session.State.SetOilLiters(OilIds.Groundnut, 0f);
+            var fee = _balance.tutorialProcessingFee;
+            var result = _session.Production.TryBeginForCurrentOrder();
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(_session.Production.HasActiveSession);
+            Assert.AreEqual(0, _session.State.money);
+            Assert.AreEqual(fee, _session.Production.Session.processingFeePaid);
         }
 
         [Test]

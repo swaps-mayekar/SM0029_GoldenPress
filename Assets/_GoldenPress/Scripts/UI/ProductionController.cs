@@ -104,7 +104,7 @@ namespace GoldenPress.UI
             {
                 case ProductionStage.Sorting:
                     _headerText.text = $"Sorting · {_oil.rawMaterialName}";
-                    _hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Tap good seeds. Avoid debris.";
+                    _hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Click good seeds with the mouse. Avoid debris.";
                     _sorting = _stageRoot.AddComponent<SortingMinigame>();
                     _sorting.Begin(_oil, forgiveness, OnStageScored);
                     break;
@@ -249,9 +249,9 @@ namespace GoldenPress.UI
             _forgiveness = forgiveness;
             _onComplete = onComplete;
             _area = GetComponent<RectTransform>();
-            _counter = UiFactory.CreateText(transform, "Counter", "Good: 0 / 8", 24, GameTheme.TextDark, TextAnchor.UpperCenter);
-            _counter.rectTransform.anchorMin = new Vector2(0.3f, 0.88f);
-            _counter.rectTransform.anchorMax = new Vector2(0.7f, 1f);
+            _counter = UiFactory.CreateText(transform, "Counter", "Click good seeds · Good: 0 / 8", 24, GameTheme.TextDark, TextAnchor.UpperCenter);
+            _counter.rectTransform.anchorMin = new Vector2(0.2f, 0.88f);
+            _counter.rectTransform.anchorMax = new Vector2(0.8f, 1f);
 
             UiFactory.CreateArtImage(transform, "BasketArt", ArtCatalog.Basket,
                 new Vector2(0.35f, 0.0f), new Vector2(0.65f, 0.22f), Vector2.zero, Vector2.zero);
@@ -330,7 +330,7 @@ namespace GoldenPress.UI
                 _caughtBad++;
             }
 
-            _counter.text = $"Good: {_caughtGood} / {TargetGood}   Debris: {_caughtBad}";
+            _counter.text = $"Click good seeds · Good: {_caughtGood} / {TargetGood}   Debris: {_caughtBad}";
             Destroy(item.gameObject);
         }
 

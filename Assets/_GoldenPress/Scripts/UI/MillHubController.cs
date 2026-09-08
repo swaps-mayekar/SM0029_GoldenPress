@@ -179,7 +179,7 @@ namespace GoldenPress.UI
             {
                 if (_session.Tutorial.IsActive && !_session.State.hasSeenPostTutorialReveal)
                 {
-                    _statusText.text = "Finish the first order first.";
+                    SetStatus("Finish the first order first.", false);
                     return;
                 }
 
@@ -241,7 +241,7 @@ namespace GoldenPress.UI
                 button.onClick.AddListener(() =>
                 {
                     var result = _session.Upgrades.TryPurchase(captured);
-                    _statusText.text = result.Message;
+                    SetStatus(result.Message, result.Success);
                     Refresh();
                     RefreshUpgrades();
                 });
@@ -284,7 +284,7 @@ namespace GoldenPress.UI
                 _session.Tutorial.CurrentStep != TutorialStep.StartProduction &&
                 _session.Tutorial.CurrentStep != TutorialStep.CompleteSorting)
             {
-                _statusText.text = "Follow the tutorial step first.";
+                SetStatus("Follow the tutorial step first.", false);
                 return;
             }
 
@@ -294,8 +294,18 @@ namespace GoldenPress.UI
                 return;
             }
 
+            var moneyBefore = _session.State.money;
+            var fee = GetCurrentProcessingFee();
             var result = _session.Production.TryBeginForCurrentOrder();
-            _statusText.text = result.Message;
+            if (result.Success && moneyBefore < fee)
+            {
+                SetStatus("Father's savings covered materials. Production started.", true);
+            }
+            else
+            {
+                SetStatus(result.Message, result.Success);
+            }
+
             if (!result.Success)
             {
                 Refresh();
@@ -309,18 +319,18 @@ namespace GoldenPress.UI
         {
             if (_session.Tutorial.IsActive && _session.Tutorial.CurrentStep != TutorialStep.FulfillOrder)
             {
-                _statusText.text = "Produce the oil before delivering.";
+                SetStatus("Produce the oil before delivering.", false);
                 return;
             }
 
             var result = _session.Orders.TryFulfillCurrent();
-            _statusText.text = result.Message;
+            SetStatus(result.Message, result.Success);
             if (result.Success)
             {
                 AudioService.Instance?.PlayCoin();
                 if (!_session.State.hasSeenPostTutorialReveal && _session.Tutorial.IsCompleted)
                 {
-                    _statusText.text = result.Message + " Upgrades and new oils will unlock as you grow.";
+                    SetStatus(result.Message + " Upgrades and new oils will unlock as you grow.", true);
                     _session.Tutorial.MarkPostTutorialRevealSeen();
                 }
             }
@@ -361,10 +371,33 @@ namespace GoldenPress.UI
             }
 
             bool tutorial = _session.Tutorial.IsActive;
+            var fee = GetCurrentProcessingFee();
+            var produceLabel = _produceButton.GetComponentInChildren<Text>();
+            if (produceLabel != null)
+            {
+                produceLabel.text = _session.Production.HasActiveSession
+                    ? "Continue Oil"
+                    : fee > 0 ? $"Make Oil ({fee})" : "Make Oil";
+            }
+
+            bool tutorialAllowsProduce = !tutorial
+                || _session.Tutorial.CurrentStep == TutorialStep.PurchaseMaterials
+                || _session.Tutorial.CurrentStep == TutorialStep.StartProduction
+                || _session.Tutorial.CurrentStep == TutorialStep.CompleteSorting
+                || _session.Production.HasActiveSession;
+            bool canAffordOrResume = _session.Production.HasActiveSession
+                || fee <= 0
+                || _session.Economy.CanAfford(fee)
+                || !_session.Orders.CanFulfillCurrent(); // soft-lock: Father's savings will cover
             _inspectButton.interactable = !tutorial || _session.Tutorial.CurrentStep == TutorialStep.InspectOrder || _session.Tutorial.CurrentStep >= TutorialStep.PurchaseMaterials;
-            _produceButton.interactable = !tutorial || _session.Tutorial.CurrentStep == TutorialStep.PurchaseMaterials || _session.Tutorial.CurrentStep == TutorialStep.StartProduction || _session.Production.HasActiveSession;
+            _produceButton.interactable = tutorialAllowsProduce && canAffordOrResume;
             _fulfillButton.interactable = (!tutorial || _session.Tutorial.CurrentStep == TutorialStep.FulfillOrder) && _session.Orders.CanFulfillCurrent();
             _upgradesButton.interactable = !tutorial || _session.State.hasSeenPostTutorialReveal || _session.Tutorial.IsCompleted;
+
+            if (!_session.Production.HasActiveSession && fee > 0 && !_session.Economy.CanAfford(fee) && !_session.Orders.CanFulfillCurrent())
+            {
+                SetStatus($"Need {fee} coins to make oil (have {_session.State.money}). Father's savings will cover the rest.", false);
+            }
 
             var muteLabel = _moneyText.transform.parent.Find("MuteButton/Label")?.GetComponent<Text>();
             if (muteLabel != null)
@@ -386,6 +419,34 @@ namespace GoldenPress.UI
                 _upgradeLabels[i].text = $"{def.displayName}  (Tier {tier}/{def.maxTier})\n{def.description}\n{costLabel}";
                 _upgradeButtons[i].interactable = _session.Upgrades.CanPurchase(type);
             }
+        }
+
+        private int GetCurrentProcessingFee()
+        {
+            var order = _session.Orders.Current;
+            if (order == null || order.isFulfilled)
+            {
+                return 0;
+            }
+
+            var oil = _session.Balance.GetOil(order.oilId);
+            if (oil == null)
+            {
+                return 0;
+            }
+
+            return EconomyMath.CalculateProcessingFee(oil, order.litersRequired, order.isTutorialOrder, _session.Balance);
+        }
+
+        private void SetStatus(string message, bool success)
+        {
+            if (_statusText == null)
+            {
+                return;
+            }
+
+            _statusText.text = message ?? string.Empty;
+            _statusText.color = success ? GameTheme.Success : GameTheme.Danger;
         }
 
         private static void Place(RectTransform rt, float minX, float minY, float maxX, float maxY)

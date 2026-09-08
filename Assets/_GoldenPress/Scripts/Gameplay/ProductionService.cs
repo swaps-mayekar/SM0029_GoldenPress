@@ -42,6 +42,18 @@ namespace GoldenPress.Gameplay
 
             var isTutorial = order.isTutorialOrder;
             var fee = EconomyMath.CalculateProcessingFee(oil, order.litersRequired, isTutorial, _session.Balance);
+
+            // Soft-lock escape: if the player cannot afford materials and also cannot
+            // fulfill the current order, Father's leftover savings cover the shortfall.
+            if (!_session.Economy.CanAfford(fee) && !_session.Orders.CanFulfillCurrent())
+            {
+                var shortfall = fee - _session.State.money;
+                if (shortfall > 0)
+                {
+                    _session.Economy.TryAdd(shortfall, "Father's savings");
+                }
+            }
+
             var spend = _session.Economy.TrySpend(fee, "Processing fee");
             if (!spend.Success)
             {

@@ -73,7 +73,7 @@ namespace GoldenPress.Gameplay
 
             if (!CanAfford(amount))
             {
-                return TransactionResult.Fail("Not enough money.");
+                return TransactionResult.Fail($"Not enough money. Need {amount} coins (have {_session.State.money}).");
             }
 
             _session.State.money -= amount;
