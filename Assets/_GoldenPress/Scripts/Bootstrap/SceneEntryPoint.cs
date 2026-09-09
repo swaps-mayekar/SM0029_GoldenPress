@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GoldenPress.Bootstrap
 {
     /// <summary>
-    /// Drop on an empty scene root. Builds cozy placeholder UI at runtime.
+    /// Scene root bootstrap. Controllers expect authored canvas UI (see Golden Press → Bake Authored UI).
     /// </summary>
     public sealed class SceneEntryPoint : MonoBehaviour
     {

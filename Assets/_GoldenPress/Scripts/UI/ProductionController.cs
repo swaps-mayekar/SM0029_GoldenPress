@@ -12,16 +12,18 @@ namespace GoldenPress.UI
 {
     public sealed class ProductionController : MonoBehaviour
     {
+        [Header("Authored UI")]
+        [SerializeField] private RectTransform root;
+        [SerializeField] private Text headerText;
+        [SerializeField] private Text hintText;
+        [SerializeField] private Text scoreText;
+        [SerializeField] private GameObject stageRoot;
+        [SerializeField] private Button continueButton;
+        [SerializeField] private Button retryButton;
+        [SerializeField] private Button exitButton;
+
         private GameSession _session;
         private OilDefinition _oil;
-        private RectTransform _root;
-        private Text _headerText;
-        private Text _hintText;
-        private Text _scoreText;
-        private GameObject _stageRoot;
-        private Button _continueButton;
-        private Button _retryButton;
-        private Button _exitButton;
 
         private SortingMinigame _sorting;
         private ProcessingMinigame _processing;
@@ -40,62 +42,39 @@ namespace GoldenPress.UI
                 return;
             }
 
-            _oil = _session.Balance.GetOil(production.oilId);
-            BuildUi();
-            ShowCurrentStage();
-        }
+            if (headerText == null || stageRoot == null)
+            {
+                Debug.LogError("Production UI refs missing. Run Golden Press → Bake Authored UI Into Scenes.");
+                return;
+            }
 
-        private void BuildUi()
-        {
+            _oil = _session.Balance.GetOil(production.oilId);
             ArtCatalog.Warm();
             if (Camera.main != null)
             {
                 Camera.main.backgroundColor = Color.Lerp(GameTheme.Background, _oil.oilColor, 0.15f);
             }
 
-            var canvas = UiFactory.CreateCanvas("ProductionCanvas", transform);
-            _root = UiFactory.CreatePanel(canvas.transform, "SafeRoot", Color.clear, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            UiFactory.ApplySafeArea(_root);
+            WireUi();
+            ShowCurrentStage();
+        }
 
-            UiFactory.CreateFullscreenBackground(_root, ArtCatalog.ProductionBackground, GameTheme.Background);
-            UiFactory.CreatePanel(_root, "SoftVeil", new Color(1f, 0.94f, 0.84f, 0.22f),
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-
-            var top = UiFactory.CreateFramedPanel(_root, "Top",
-                new Vector2(0.03f, 0.86f), new Vector2(0.97f, 0.97f), Vector2.zero, Vector2.zero);
-            _headerText = UiFactory.CreateText(top, "Header", "", 30, GameTheme.TextDark, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _headerText.rectTransform.offsetMin = new Vector2(20, 0);
-            _scoreText = UiFactory.CreateText(top, "Score", "", 26, GameTheme.TextMuted, TextAnchor.MiddleRight);
-            _scoreText.rectTransform.offsetMax = new Vector2(-20, 0);
-
-            _hintText = UiFactory.CreateText(_root, "Hint", "", 24, GameTheme.TextDark, TextAnchor.MiddleCenter);
-            _hintText.rectTransform.anchorMin = new Vector2(0.1f, 0.76f);
-            _hintText.rectTransform.anchorMax = new Vector2(0.9f, 0.85f);
-
-            _stageRoot = UiFactory.CreatePanel(_root, "StageRoot", Color.clear,
-                new Vector2(0.05f, 0.16f), new Vector2(0.95f, 0.75f), Vector2.zero, Vector2.zero).gameObject;
-
-            _continueButton = UiFactory.CreateButton(_root, "Continue", "Continue", GameTheme.Success,
-                new Vector2(0.55f, 0.03f), new Vector2(0.8f, 0.12f), Vector2.zero, Vector2.zero);
-            _continueButton.onClick.AddListener(OnContinue);
-            _continueButton.gameObject.SetActive(false);
-
-            _retryButton = UiFactory.CreateButton(_root, "Retry", "Retry Stage", GameTheme.Accent,
-                new Vector2(0.2f, 0.03f), new Vector2(0.45f, 0.12f), Vector2.zero, Vector2.zero);
-            _retryButton.onClick.AddListener(OnRetry);
-            _retryButton.gameObject.SetActive(false);
-
-            _exitButton = UiFactory.CreateButton(_root, "Exit", "Back", GameTheme.Wood,
-                new Vector2(0.03f, 0.03f), new Vector2(0.15f, 0.12f), Vector2.zero, Vector2.zero);
-            _exitButton.onClick.AddListener(() => SceneManager.LoadScene(SceneNames.MainMill));
+        private void WireUi()
+        {
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinue);
+            retryButton.onClick.RemoveAllListeners();
+            retryButton.onClick.AddListener(OnRetry);
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(() => SceneManager.LoadScene(SceneNames.MainMill));
         }
 
         private void ShowCurrentStage()
         {
             ClearStage();
             _stageComplete = false;
-            _continueButton.gameObject.SetActive(false);
-            _retryButton.gameObject.SetActive(false);
+            continueButton.gameObject.SetActive(false);
+            retryButton.gameObject.SetActive(false);
 
             var stage = _session.Production.Session.currentStage;
             var forgiveness = _session.Progression.GetForgivenessBonus();
@@ -103,21 +82,21 @@ namespace GoldenPress.UI
             switch (stage)
             {
                 case ProductionStage.Sorting:
-                    _headerText.text = $"Sorting · {_oil.rawMaterialName}";
-                    _hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Click good seeds with the mouse. Avoid debris.";
-                    _sorting = _stageRoot.AddComponent<SortingMinigame>();
+                    headerText.text = $"Sorting · {_oil.rawMaterialName}";
+                    hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Click good seeds with the mouse. Avoid debris.";
+                    _sorting = stageRoot.AddComponent<SortingMinigame>();
                     _sorting.Begin(_oil, forgiveness, OnStageScored);
                     break;
                 case ProductionStage.Processing:
-                    _headerText.text = $"Processing · {_oil.displayName}";
-                    _hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Hold to raise pressure. Stay in the golden zone.";
-                    _processing = _stageRoot.AddComponent<ProcessingMinigame>();
+                    headerText.text = $"Processing · {_oil.displayName}";
+                    hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Hold to raise pressure. Stay in the golden zone.";
+                    _processing = stageRoot.AddComponent<ProcessingMinigame>();
                     _processing.Begin(_oil, forgiveness, OnStageScored);
                     break;
                 case ProductionStage.Bottling:
-                    _headerText.text = $"Bottling · {_oil.displayName}";
-                    _hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Tap to stop the fill in the target band.";
-                    _bottling = _stageRoot.AddComponent<BottlingMinigame>();
+                    headerText.text = $"Bottling · {_oil.displayName}";
+                    hintText.text = _session.Tutorial.IsActive ? _session.Tutorial.GetPrompt() : "Tap to stop the fill in the target band.";
+                    _bottling = stageRoot.AddComponent<BottlingMinigame>();
                     _bottling.Begin(_oil, forgiveness, OnStageScored);
                     break;
                 case ProductionStage.Finished:
@@ -133,10 +112,10 @@ namespace GoldenPress.UI
         {
             _lastScore = score;
             _stageComplete = true;
-            _scoreText.text = $"Stage quality: {Mathf.RoundToInt(score * 100)}%";
-            _continueButton.gameObject.SetActive(true);
-            _retryButton.gameObject.SetActive(true);
-            _hintText.text = "Nice work. Continue, or retry this stage before committing.";
+            scoreText.text = $"Stage quality: {Mathf.RoundToInt(score * 100)}%";
+            continueButton.gameObject.SetActive(true);
+            retryButton.gameObject.SetActive(true);
+            hintText.text = "Nice work. Continue, or retry this stage before committing.";
         }
 
         private void OnContinue()
@@ -170,26 +149,26 @@ namespace GoldenPress.UI
         {
             ClearStage();
             var session = _session.State.productionSession;
-            _headerText.text = "Batch Ready";
-            _hintText.text = $"Produced {session.resultingLiters:0.#} L of {_oil.displayName} (quality x{session.qualityMultiplier:0.00})";
-            _scoreText.text = $"Sort {Pct(session.sortingScore)} · Press {Pct(session.processingScore)} · Bottle {Pct(session.bottlingScore)}";
-            _continueButton.gameObject.SetActive(true);
-            _continueButton.GetComponentInChildren<Text>().text = "Return to Mill";
-            _retryButton.gameObject.SetActive(false);
-            _continueButton.onClick.RemoveAllListeners();
-            _continueButton.onClick.AddListener(() =>
+            headerText.text = "Batch Ready";
+            hintText.text = $"Produced {session.resultingLiters:0.#} L of {_oil.displayName} (quality x{session.qualityMultiplier:0.00})";
+            scoreText.text = $"Sort {Pct(session.sortingScore)} · Press {Pct(session.processingScore)} · Bottle {Pct(session.bottlingScore)}";
+            continueButton.gameObject.SetActive(true);
+            continueButton.GetComponentInChildren<Text>().text = "Return to Mill";
+            retryButton.gameObject.SetActive(false);
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(() =>
             {
                 _session.Production.ClearCommittedSession();
                 SceneManager.LoadScene(SceneNames.MainMill);
             });
 
-            var panel = UiFactory.CreateFramedPanel(_stageRoot.transform, "Summary",
+            var panel = UiFactory.CreateFramedPanel(stageRoot.transform, "Summary",
                 new Vector2(0.2f, 0.25f), new Vector2(0.8f, 0.75f), Vector2.zero, Vector2.zero);
             UiFactory.CreateArtImage(panel, "Bottle", ArtCatalog.OilBottle,
                 new Vector2(0.35f, 0.55f), new Vector2(0.65f, 0.92f), Vector2.zero, Vector2.zero);
             UiFactory.CreateText(panel, "Body",
                 "The oil is in your storage tank.\nDeliver it to complete the order.",
-                28, GameTheme.TextDark, TextAnchor.MiddleCenter);
+                30, GameTheme.TextDark, TextAnchor.MiddleCenter);
         }
 
         private static string Pct(float v) => $"{Mathf.RoundToInt(v * 100)}%";
@@ -204,7 +183,7 @@ namespace GoldenPress.UI
             _bottling = null;
 
             var children = new List<Transform>();
-            foreach (Transform child in _stageRoot.transform)
+            foreach (Transform child in stageRoot.transform)
             {
                 children.Add(child);
             }
@@ -214,6 +193,20 @@ namespace GoldenPress.UI
                 Destroy(children[i].gameObject);
             }
         }
+
+#if UNITY_EDITOR
+        public void ApplyAuthoredRefs(UiSceneBuilders.ProductionRefs refs)
+        {
+            root = refs.Root;
+            headerText = refs.HeaderText;
+            hintText = refs.HintText;
+            scoreText = refs.ScoreText;
+            stageRoot = refs.StageRoot;
+            continueButton = refs.ContinueButton;
+            retryButton = refs.RetryButton;
+            exitButton = refs.ExitButton;
+        }
+#endif
 
         private static void EnsureEventSystem()
         {
@@ -249,7 +242,7 @@ namespace GoldenPress.UI
             _forgiveness = forgiveness;
             _onComplete = onComplete;
             _area = GetComponent<RectTransform>();
-            _counter = UiFactory.CreateText(transform, "Counter", "Click good seeds · Good: 0 / 8", 24, GameTheme.TextDark, TextAnchor.UpperCenter);
+            _counter = UiFactory.CreateText(transform, "Counter", "Click good seeds · Good: 0 / 8", 26, GameTheme.TextDark, TextAnchor.UpperCenter);
             _counter.rectTransform.anchorMin = new Vector2(0.2f, 0.88f);
             _counter.rectTransform.anchorMax = new Vector2(0.8f, 1f);
 
@@ -281,11 +274,6 @@ namespace GoldenPress.UI
                 item.Tick(Time.deltaTime);
                 if (item.FallenOff)
                 {
-                    if (item.IsGood)
-                    {
-                        // missed good seed
-                    }
-
                     Destroy(item.gameObject);
                     _items.RemoveAt(i);
                 }
@@ -340,7 +328,7 @@ namespace GoldenPress.UI
             _done = true;
             float score = Mathf.Clamp01((_caughtGood / (float)TargetGood) - _caughtBad * (0.08f - _forgiveness * 0.5f));
             score = Mathf.Clamp01(score + _forgiveness * 0.25f);
-            if (score < 0.55f) score = 0.55f; // never soft-lock first runs too harshly
+            if (score < 0.55f) score = 0.55f;
             _onComplete?.Invoke(score);
         }
     }
@@ -414,7 +402,7 @@ namespace GoldenPress.UI
             _bar = UiFactory.CreatePanel(track, "Bar", GameTheme.Accent,
                 new Vector2(0f, 0.05f), new Vector2(0.02f, 0.95f), Vector2.zero, Vector2.zero).GetComponent<Image>();
 
-            _label = UiFactory.CreateText(transform, "Label", "Hold to press Father's mill", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
+            _label = UiFactory.CreateText(transform, "Label", "Hold to press Father's mill", 28, GameTheme.TextDark, TextAnchor.MiddleCenter);
             _label.rectTransform.anchorMin = new Vector2(0.2f, 0.36f);
             _label.rectTransform.anchorMax = new Vector2(0.8f, 0.46f);
 
@@ -503,7 +491,7 @@ namespace GoldenPress.UI
             _target = UiFactory.CreatePanel(bottleFrame, "Target", new Color(1f, 1f, 1f, 0.35f),
                 new Vector2(0.18f, 0.68f - window), new Vector2(0.82f, 0.68f + window * 0.15f), Vector2.zero, Vector2.zero).GetComponent<Image>();
 
-            _label = UiFactory.CreateText(transform, "Label", "Bottle 1 / 4 — tap to stop", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
+            _label = UiFactory.CreateText(transform, "Label", "Bottle 1 / 4 — tap to stop", 28, GameTheme.TextDark, TextAnchor.MiddleCenter);
             _label.rectTransform.anchorMin = new Vector2(0.2f, 0.05f);
             _label.rectTransform.anchorMax = new Vector2(0.8f, 0.15f);
 

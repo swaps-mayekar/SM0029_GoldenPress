@@ -3,16 +3,16 @@ using UnityEngine;
 namespace GoldenPress.Bootstrap
 {
     /// <summary>
-    /// Ensures landscape-friendly safe-area updates when device insets change.
+    /// Keeps a RectTransform fitted to Screen.safeArea. Place on SafeRoot.
     /// </summary>
     public sealed class SafeAreaWatcher : MonoBehaviour
     {
         private RectTransform _target;
         private Rect _lastSafeArea;
 
-        public void SetTarget(RectTransform target)
+        private void Awake()
         {
-            _target = target;
+            _target = GetComponent<RectTransform>();
             Apply();
         }
 
@@ -31,6 +31,11 @@ namespace GoldenPress.Bootstrap
 
         private void Apply()
         {
+            if (_target == null)
+            {
+                return;
+            }
+
             _lastSafeArea = Screen.safeArea;
             GoldenPress.UI.UiFactory.ApplySafeArea(_target);
         }

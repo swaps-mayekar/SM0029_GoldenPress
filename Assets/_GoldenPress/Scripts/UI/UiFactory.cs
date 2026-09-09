@@ -27,6 +27,19 @@ namespace GoldenPress.UI
                     return _whiteSprite;
                 }
 
+                _whiteSprite = Resources.Load<Sprite>("Art/ui_white");
+                if (_whiteSprite != null)
+                {
+                    return _whiteSprite;
+                }
+
+                var builtin = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+                if (builtin != null)
+                {
+                    _whiteSprite = builtin;
+                    return _whiteSprite;
+                }
+
                 var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 tex.SetPixels(new[] { Color.white, Color.white, Color.white, Color.white });
                 tex.Apply();
@@ -38,6 +51,7 @@ namespace GoldenPress.UI
 
         private static Sprite _whiteSprite;
 
+        /// <summary>Primary UI face — Liberation Sans Bold for heavier readable type.</summary>
         public static Font DefaultFont
         {
             get
@@ -47,7 +61,17 @@ namespace GoldenPress.UI
                     return _defaultFont;
                 }
 
-                _defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                _defaultFont = Resources.Load<Font>("Fonts/LiberationSans-Bold");
+                if (_defaultFont == null)
+                {
+                    _defaultFont = Resources.Load<Font>("Fonts/LiberationSans-Regular");
+                }
+
+                if (_defaultFont == null)
+                {
+                    _defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                }
+
                 if (_defaultFont == null)
                 {
                     _defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -58,6 +82,22 @@ namespace GoldenPress.UI
         }
 
         private static Font _defaultFont;
+
+        public static Font RegularFont
+        {
+            get
+            {
+                if (_regularFont != null)
+                {
+                    return _regularFont;
+                }
+
+                _regularFont = Resources.Load<Font>("Fonts/LiberationSans-Regular");
+                return _regularFont != null ? _regularFont : DefaultFont;
+            }
+        }
+
+        private static Font _regularFont;
     }
 
     public static class UiFactory
@@ -158,7 +198,7 @@ namespace GoldenPress.UI
             return bg.rectTransform;
         }
 
-        public static Text CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal)
+        public static Text CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal, bool useRegularFace = false)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Text));
             var rt = go.GetComponent<RectTransform>();
@@ -166,7 +206,7 @@ namespace GoldenPress.UI
             Stretch(rt);
 
             var text = go.GetComponent<Text>();
-            text.font = GameTheme.DefaultFont;
+            text.font = useRegularFace ? GameTheme.RegularFont : GameTheme.DefaultFont;
             text.text = content;
             text.fontSize = fontSize;
             text.color = color;
@@ -201,7 +241,7 @@ namespace GoldenPress.UI
 
             var luminance = color.r * 0.3f + color.g * 0.59f + color.b * 0.11f;
             var labelColor = luminance < 0.55f ? Color.white : GameTheme.TextDark;
-            var text = CreateText(rt, "Label", label, 28, labelColor, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var text = CreateText(rt, "Label", label, 30, labelColor, TextAnchor.MiddleCenter);
             var textRt = text.GetComponent<RectTransform>();
             textRt.offsetMin = new Vector2(12, 8);
             textRt.offsetMax = new Vector2(-12, -8);
@@ -212,6 +252,14 @@ namespace GoldenPress.UI
         {
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        public static void Place(RectTransform rt, float minX, float minY, float maxX, float maxY)
+        {
+            rt.anchorMin = new Vector2(minX, minY);
+            rt.anchorMax = new Vector2(maxX, maxY);
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
         }
