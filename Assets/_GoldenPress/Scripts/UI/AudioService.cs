@@ -54,45 +54,4 @@ namespace GoldenPress.UI
             group.alpha = to;
         }
     }
-
-    public sealed class AudioService : MonoBehaviour
-    {
-        public static AudioService Instance { get; private set; }
-
-        private bool _muted;
-
-        public bool Muted
-        {
-            get => _muted;
-            set
-            {
-                _muted = value;
-                AudioListener.volume = _muted ? 0f : 1f;
-            }
-        }
-
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(this);
-                return;
-            }
-
-            Instance = this;
-        }
-
-        public void PlayUiTap()
-        {
-            // Placeholder hook: no clips shipped in this milestone.
-        }
-
-        public void PlaySuccess()
-        {
-        }
-
-        public void PlayCoin()
-        {
-        }
-    }
 }

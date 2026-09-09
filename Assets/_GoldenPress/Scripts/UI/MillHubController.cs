@@ -44,12 +44,6 @@ namespace GoldenPress.UI
                 _session.Production.ClearCommittedSession();
             }
 
-            if (GetComponent<AudioService>() == null)
-            {
-                gameObject.AddComponent<AudioService>();
-            }
-
-            AudioService.Instance.Muted = _session.State.muted;
             ArtCatalog.Warm();
             BuildUi();
             Refresh();
@@ -123,18 +117,8 @@ namespace GoldenPress.UI
             _moneyText = UiFactory.CreateText(top, "Money", "Coins: 0", 30, GameTheme.TextDark, TextAnchor.MiddleLeft, FontStyle.Bold);
             Place(_moneyText.rectTransform, 0.08f, 0f, 0.38f, 1f);
 
-            _storageText = UiFactory.CreateText(top, "Storage", "Storage: 0/20 L", 26, GameTheme.TextMuted, TextAnchor.MiddleCenter);
-            Place(_storageText.rectTransform, 0.38f, 0f, 0.72f, 1f);
-
-            var mute = UiFactory.CreateButton(top, "MuteButton", "Mute", GameTheme.AccentSoft,
-                new Vector2(0.78f, 0.15f), new Vector2(0.97f, 0.85f), Vector2.zero, Vector2.zero);
-            mute.onClick.AddListener(() =>
-            {
-                _session.State.muted = !_session.State.muted;
-                AudioService.Instance.Muted = _session.State.muted;
-                _session.NotifyChanged();
-                Refresh();
-            });
+            _storageText = UiFactory.CreateText(top, "Storage", "Storage: 0/20 L", 26, GameTheme.TextMuted, TextAnchor.MiddleRight);
+            Place(_storageText.rectTransform, 0.38f, 0f, 0.97f, 1f);
         }
 
         private void BuildCenterStage(RectTransform root)
@@ -327,7 +311,6 @@ namespace GoldenPress.UI
             SetStatus(result.Message, result.Success);
             if (result.Success)
             {
-                AudioService.Instance?.PlayCoin();
                 if (!_session.State.hasSeenPostTutorialReveal && _session.Tutorial.IsCompleted)
                 {
                     SetStatus(result.Message + " Upgrades and new oils will unlock as you grow.", true);
@@ -397,12 +380,6 @@ namespace GoldenPress.UI
             if (!_session.Production.HasActiveSession && fee > 0 && !_session.Economy.CanAfford(fee) && !_session.Orders.CanFulfillCurrent())
             {
                 SetStatus($"Need {fee} coins to make oil (have {_session.State.money}). Father's savings will cover the rest.", false);
-            }
-
-            var muteLabel = _moneyText.transform.parent.Find("MuteButton/Label")?.GetComponent<Text>();
-            if (muteLabel != null)
-            {
-                muteLabel.text = _session.State.muted ? "Unmute" : "Mute";
             }
         }
 

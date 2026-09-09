@@ -109,7 +109,6 @@ namespace GoldenPress.Core
         public CustomerOrder currentOrder;
         public ProductionSession productionSession = new ProductionSession();
         public int orderSeed = 1;
-        public bool muted;
         public bool hasSeenPostTutorialReveal;
 
         public static SaveData CreateDefault(GameBalanceConfig balance)
@@ -122,7 +121,6 @@ namespace GoldenPress.Core
                 completedOrderCount = 0,
                 tutorialStep = TutorialStep.InspectOrder,
                 orderSeed = 1,
-                muted = false,
                 hasSeenPostTutorialReveal = false,
                 unlockedOilIds = new List<string> { OilIds.Groundnut },
                 oilStock = new List<OilStockEntry>(),
