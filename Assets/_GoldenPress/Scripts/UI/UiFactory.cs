@@ -51,53 +51,63 @@ namespace GoldenPress.UI
 
         private static Sprite _whiteSprite;
 
-        /// <summary>Primary UI face — Liberation Sans Bold for heavier readable type.</summary>
-        public static Font DefaultFont
+        /// <summary>Body / HUD copy — Liberation Sans Bold.</summary>
+        public static Font BodyFont
         {
             get
             {
-                if (_defaultFont != null)
+                if (_bodyFont != null)
                 {
-                    return _defaultFont;
+                    return _bodyFont;
                 }
 
-                _defaultFont = Resources.Load<Font>("Fonts/LiberationSans-Bold");
-                if (_defaultFont == null)
+                _bodyFont = Resources.Load<Font>("Fonts/LiberationSans-Bold");
+                if (_bodyFont == null)
                 {
-                    _defaultFont = Resources.Load<Font>("Fonts/LiberationSans-Regular");
+                    _bodyFont = Resources.Load<Font>("Fonts/LiberationSans-Regular");
                 }
 
-                if (_defaultFont == null)
+                if (_bodyFont == null)
                 {
-                    _defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                    _bodyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 }
 
-                if (_defaultFont == null)
+                if (_bodyFont == null)
                 {
-                    _defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                    _bodyFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
                 }
 
-                return _defaultFont;
+                return _bodyFont;
             }
         }
 
-        private static Font _defaultFont;
+        private static Font _bodyFont;
 
-        public static Font RegularFont
+        /// <summary>Titles, headings, and button labels — Cinzel Extra Bold.</summary>
+        public static Font TitleFont
         {
             get
             {
-                if (_regularFont != null)
+                if (_titleFont != null)
                 {
-                    return _regularFont;
+                    return _titleFont;
                 }
 
-                _regularFont = Resources.Load<Font>("Fonts/LiberationSans-Regular");
-                return _regularFont != null ? _regularFont : DefaultFont;
+                _titleFont = Resources.Load<Font>("Fonts/Cinzel-ExtraBold");
+                return _titleFont != null ? _titleFont : BodyFont;
             }
         }
 
-        private static Font _regularFont;
+        private static Font _titleFont;
+
+        /// <summary>Alias for body face (legacy call sites).</summary>
+        public static Font DefaultFont => BodyFont;
+    }
+
+    public enum UiFontRole
+    {
+        Body,
+        Title
     }
 
     public static class UiFactory
@@ -198,7 +208,7 @@ namespace GoldenPress.UI
             return bg.rectTransform;
         }
 
-        public static Text CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal, bool useRegularFace = false)
+        public static Text CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal, UiFontRole role = UiFontRole.Body)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Text));
             var rt = go.GetComponent<RectTransform>();
@@ -206,7 +216,7 @@ namespace GoldenPress.UI
             Stretch(rt);
 
             var text = go.GetComponent<Text>();
-            text.font = useRegularFace ? GameTheme.RegularFont : GameTheme.DefaultFont;
+            text.font = role == UiFontRole.Title ? GameTheme.TitleFont : GameTheme.BodyFont;
             text.text = content;
             text.fontSize = fontSize;
             text.color = color;
@@ -241,7 +251,7 @@ namespace GoldenPress.UI
 
             var luminance = color.r * 0.3f + color.g * 0.59f + color.b * 0.11f;
             var labelColor = luminance < 0.55f ? Color.white : GameTheme.TextDark;
-            var text = CreateText(rt, "Label", label, 30, labelColor, TextAnchor.MiddleCenter);
+            var text = CreateText(rt, "Label", label, 30, labelColor, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
             var textRt = text.GetComponent<RectTransform>();
             textRt.offsetMin = new Vector2(12, 8);
             textRt.offsetMax = new Vector2(-12, -8);

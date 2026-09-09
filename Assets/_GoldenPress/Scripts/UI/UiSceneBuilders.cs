@@ -69,15 +69,15 @@ namespace GoldenPress.UI
             UiFactory.CreateArtImage(card, "Logo", ArtCatalog.LogoMark,
                 new Vector2(0.38f, 0.78f), new Vector2(0.62f, 0.94f), Vector2.zero, Vector2.zero);
 
-            var title = UiFactory.CreateText(card, "Title", "Golden Press", 64, GameTheme.WoodDark, TextAnchor.MiddleCenter);
+            var title = UiFactory.CreateText(card, "Title", "Golden Press", 64, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
             UiFactory.Place(title.rectTransform, 0.08f, 0.64f, 0.92f, 0.78f);
 
-            var hook = UiFactory.CreateText(card, "Hook", "Father's mill is yours now.", 34, GameTheme.WoodDark, TextAnchor.MiddleCenter);
+            var hook = UiFactory.CreateText(card, "Hook", "Father's mill is yours now.", 34, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
             UiFactory.Place(hook.rectTransform, 0.08f, 0.52f, 0.92f, 0.64f);
 
             var story = UiFactory.CreateText(card, "Story",
                 "After Father suddenly passes away, you take over his small traditional wooden oil mill in town.\n\nOne customer order is already waiting.",
-                26, GameTheme.TextMuted, TextAnchor.UpperCenter, FontStyle.Normal, useRegularFace: true);
+                26, GameTheme.TextMuted, TextAnchor.UpperCenter, FontStyle.Normal, UiFontRole.Body);
             UiFactory.Place(story.rectTransform, 0.1f, 0.22f, 0.9f, 0.52f);
 
             var status = UiFactory.CreateText(root, "Status", "Tap below when you are ready.", 26, Color.white, TextAnchor.LowerCenter);
@@ -226,7 +226,7 @@ namespace GoldenPress.UI
 
             var top = UiFactory.CreateFramedPanel(root, "Top",
                 new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.97f), Vector2.zero, Vector2.zero);
-            var header = UiFactory.CreateText(top, "Header", "", 32, GameTheme.TextDark, TextAnchor.MiddleLeft);
+            var header = UiFactory.CreateText(top, "Header", "", 32, GameTheme.TextDark, TextAnchor.MiddleLeft, FontStyle.Normal, UiFontRole.Title);
             header.rectTransform.offsetMin = new Vector2(20, 0);
             header.rectTransform.offsetMax = new Vector2(-280, 0);
             var score = UiFactory.CreateText(top, "Score", "", 28, GameTheme.TextMuted, TextAnchor.MiddleRight);
@@ -269,7 +269,7 @@ namespace GoldenPress.UI
 
         private static void PlaceLabel(Transform parent, string name, string content, int size, Color color, float minY, float maxY, TextAnchor anchor = TextAnchor.UpperCenter)
         {
-            var text = UiFactory.CreateText(parent, name, content, size, color, anchor);
+            var text = UiFactory.CreateText(parent, name, content, size, color, anchor, FontStyle.Normal, UiFontRole.Title);
             UiFactory.Place(text.rectTransform, 0.05f, minY, 0.95f, maxY);
         }
 

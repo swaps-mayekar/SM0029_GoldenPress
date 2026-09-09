@@ -22,6 +22,7 @@ namespace GoldenPress.EditorTools
         public static void BakeAuthoredUiIntoScenes()
         {
             EnsureWhiteSpriteAsset();
+            EnsureCinzelInResources();
             AssetDatabase.Refresh();
             ArtCatalog.Warm();
 
@@ -32,6 +33,115 @@ namespace GoldenPress.EditorTools
             EditorSceneManager.SaveOpenScenes();
             AssetDatabase.SaveAssets();
             Debug.Log("Golden Press: authored UI baked into Splash, Mill, and Production scenes. Adjust RectTransforms in the Hierarchy to fix overlap.");
+        }
+
+        [MenuItem("Golden Press/Apply UI Fonts (Cinzel + Liberation)")]
+        public static void ApplyUiFontsToScenes()
+        {
+            EnsureCinzelInResources();
+            AssetDatabase.Refresh();
+
+            var title = LoadTitleFont();
+            var body = LoadBodyFont();
+            if (title == null || body == null)
+            {
+                Debug.LogError("Golden Press: missing Cinzel-ExtraBold or LiberationSans-Bold font assets.");
+                return;
+            }
+
+            ApplyFontsInScene("0_SplashScene", title, body);
+            ApplyFontsInScene("1_MainMillScene", title, body);
+            ApplyFontsInScene("2_ProductionScene", title, body);
+            EditorSceneManager.SaveOpenScenes();
+            AssetDatabase.SaveAssets();
+            Debug.Log("Golden Press: applied Cinzel Extra Bold to titles/headings/buttons and Liberation Sans Bold to body text.");
+        }
+
+        private static Font LoadTitleFont()
+        {
+            var fromResources = Resources.Load<Font>("Fonts/Cinzel-ExtraBold");
+            if (fromResources != null) return fromResources;
+            return AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/Font/Cinzel-ExtraBold.ttf");
+        }
+
+        private static Font LoadBodyFont()
+        {
+            var fromResources = Resources.Load<Font>("Fonts/LiberationSans-Bold");
+            if (fromResources != null) return fromResources;
+            return AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/Font/LiberationSans-Bold.ttf");
+        }
+
+        private static void ApplyFontsInScene(string sceneName, Font title, Font body)
+        {
+            var path = $"{ScenesFolder}/{sceneName}.unity";
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            var texts = Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            int changed = 0;
+            foreach (var text in texts)
+            {
+                var role = ResolveFontRole(text);
+                var next = role == UiFontRole.Title ? title : body;
+                if (text.font != next)
+                {
+                    text.font = next;
+                    EditorUtility.SetDirty(text);
+                    changed++;
+                }
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log($"Golden Press: updated {changed} Text components in {sceneName}.");
+        }
+
+        private static UiFontRole ResolveFontRole(UnityEngine.UI.Text text)
+        {
+            if (text.GetComponentInParent<UnityEngine.UI.Button>(true) != null)
+            {
+                return UiFontRole.Title;
+            }
+
+            switch (text.gameObject.name)
+            {
+                case "Title":
+                case "Hook":
+                case "Header":
+                case "Label":
+                case "MillLabel":
+                case "TankLabel":
+                case "ShopLabel":
+                case "OrderTitle":
+                    return UiFontRole.Title;
+            }
+
+            if (text.gameObject.name.EndsWith("Label"))
+            {
+                return UiFontRole.Title;
+            }
+
+            return UiFontRole.Body;
+        }
+
+        private static void EnsureCinzelInResources()
+        {
+            var dest = "Assets/_GoldenPress/Resources/Fonts/Cinzel-ExtraBold.ttf";
+            var src = "Assets/Art/Font/Cinzel-ExtraBold.ttf";
+            if (!File.Exists(src))
+            {
+                Debug.LogWarning("Golden Press: Cinzel-ExtraBold.ttf not found in Assets/Art/Font.");
+                return;
+            }
+
+            if (!File.Exists(dest))
+            {
+                File.Copy(src, dest, false);
+                AssetDatabase.ImportAsset(dest);
+            }
         }
 
         /// <summary>Batch-mode entry: Unity -batchmode -executeMethod GoldenPress.EditorTools.GoldenPressUiBaker.BakeAuthoredUiIntoScenesBatch</summary>
