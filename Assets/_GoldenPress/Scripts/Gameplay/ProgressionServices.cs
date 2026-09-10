@@ -189,7 +189,7 @@ namespace GoldenPress.Gameplay
                 case TutorialStep.StartProduction:
                     return "Start production and make the oil on Father's wooden press.";
                 case TutorialStep.CompleteSorting:
-                    return "Click the good groundnuts as they fall. Leave the debris alone.";
+                    return "Tap the good groundnuts as they fall. Leave the debris alone.";
                 case TutorialStep.CompleteProcessing:
                     return "Keep the press pressure in the golden zone.";
                 case TutorialStep.CompleteBottling:
