@@ -6,7 +6,8 @@
         "GoldenPress.Gameplay",
         "GoldenPress.UI",
         "GoldenPress.Bootstrap",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

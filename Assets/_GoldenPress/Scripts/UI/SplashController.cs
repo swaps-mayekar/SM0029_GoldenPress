@@ -1,5 +1,6 @@
 using GoldenPress.Core;
 using GoldenPress.Gameplay;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -11,7 +12,7 @@ namespace GoldenPress.UI
     public sealed class SplashController : MonoBehaviour
     {
         [Header("Authored UI")]
-        [SerializeField] private Text status;
+        [SerializeField] private TextMeshProUGUI status;
         [SerializeField] private Button beginButton;
         [SerializeField] private RectTransform punchTarget;
 

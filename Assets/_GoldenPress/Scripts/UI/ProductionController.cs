@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using GoldenPress.Core;
 using GoldenPress.Gameplay;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -14,9 +15,9 @@ namespace GoldenPress.UI
     {
         [Header("Authored UI")]
         [SerializeField] private RectTransform root;
-        [SerializeField] private Text headerText;
-        [SerializeField] private Text hintText;
-        [SerializeField] private Text scoreText;
+        [SerializeField] private TextMeshProUGUI headerText;
+        [SerializeField] private TextMeshProUGUI hintText;
+        [SerializeField] private TextMeshProUGUI scoreText;
         [SerializeField] private GameObject stageRoot;
         [SerializeField] private Button continueButton;
         [SerializeField] private Button retryButton;
@@ -153,7 +154,7 @@ namespace GoldenPress.UI
             hintText.text = $"Produced {session.resultingLiters:0.#} L of {_oil.displayName} (quality x{session.qualityMultiplier:0.00})";
             scoreText.text = $"Sort {Pct(session.sortingScore)} · Press {Pct(session.processingScore)} · Bottle {Pct(session.bottlingScore)}";
             continueButton.gameObject.SetActive(true);
-            continueButton.GetComponentInChildren<Text>().text = "Return to Mill";
+            continueButton.GetComponentInChildren<TextMeshProUGUI>().text = "Return to Mill";
             retryButton.gameObject.SetActive(false);
             continueButton.onClick.RemoveAllListeners();
             continueButton.onClick.AddListener(() =>
@@ -229,7 +230,7 @@ namespace GoldenPress.UI
         private int _caughtBad;
         private int _spawned;
         private float _spawnTimer;
-        private Text _counter;
+        private TextMeshProUGUI _counter;
         private RectTransform _area;
         private readonly List<SortItem> _items = new List<SortItem>();
         private bool _done;
@@ -380,7 +381,7 @@ namespace GoldenPress.UI
         private bool _done;
         private Image _bar;
         private Image _zone;
-        private Text _label;
+        private TextMeshProUGUI _label;
         private const float Duration = 8f;
 
         public void Begin(OilDefinition oil, float forgiveness, Action<float> onComplete)
@@ -471,7 +472,7 @@ namespace GoldenPress.UI
         private readonly List<float> _scores = new List<float>();
         private Image _fillImage;
         private Image _target;
-        private Text _label;
+        private TextMeshProUGUI _label;
         private const int BottleCount = 4;
 
         public void Begin(OilDefinition oil, float forgiveness, Action<float> onComplete)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GoldenPress.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,20 +16,20 @@ namespace GoldenPress.UI
     {
         public sealed class SplashRefs
         {
-            public Text Status;
+            public TextMeshProUGUI Status;
             public Button BeginButton;
             public RectTransform PunchTarget;
         }
 
         public sealed class MillHubRefs
         {
-            public Text MoneyText;
-            public Text OrderText;
-            public Text StorageText;
-            public Text TutorialText;
-            public Text StatusText;
-            public Text UnlockText;
-            public Text OrderDetailBody;
+            public TextMeshProUGUI MoneyText;
+            public TextMeshProUGUI OrderText;
+            public TextMeshProUGUI StorageText;
+            public TextMeshProUGUI TutorialText;
+            public TextMeshProUGUI StatusText;
+            public TextMeshProUGUI UnlockText;
+            public TextMeshProUGUI OrderDetailBody;
             public Button InspectButton;
             public Button ProduceButton;
             public Button FulfillButton;
@@ -37,16 +38,16 @@ namespace GoldenPress.UI
             public GameObject UpgradePanel;
             public GameObject TutorialBlocker;
             public readonly List<Button> UpgradeButtons = new List<Button>();
-            public readonly List<Text> UpgradeLabels = new List<Text>();
+            public readonly List<TextMeshProUGUI> UpgradeLabels = new List<TextMeshProUGUI>();
             public RectTransform PunchTarget;
         }
 
         public sealed class ProductionRefs
         {
             public RectTransform Root;
-            public Text HeaderText;
-            public Text HintText;
-            public Text ScoreText;
+            public TextMeshProUGUI HeaderText;
+            public TextMeshProUGUI HintText;
+            public TextMeshProUGUI ScoreText;
             public GameObject StageRoot;
             public Button ContinueButton;
             public Button RetryButton;
@@ -93,7 +94,7 @@ namespace GoldenPress.UI
 
             var begin = UiFactory.CreateButton(root, "BeginButton", "Enter the Mill", GameTheme.Accent,
                 new Vector2(0.32f, 0.04f), new Vector2(0.68f, 0.12f), Vector2.zero, Vector2.zero);
-            begin.GetComponentInChildren<Text>().fontSize = 50;
+            begin.GetComponentInChildren<TextMeshProUGUI>().fontSize = 50;
 
             return new SplashRefs
             {
@@ -210,7 +211,7 @@ namespace GoldenPress.UI
                 var button = UiFactory.CreateButton(upgradeCard, type + "Upgrade", "Upgrade", GameTheme.AccentSoft,
                     new Vector2(0.1f, y - 0.14f), new Vector2(0.9f, y), Vector2.zero, Vector2.zero);
                 refs.UpgradeButtons.Add(button);
-                refs.UpgradeLabels.Add(button.GetComponentInChildren<Text>());
+                refs.UpgradeLabels.Add(button.GetComponentInChildren<TextMeshProUGUI>());
                 y -= 0.18f;
             }
 
@@ -297,7 +298,7 @@ namespace GoldenPress.UI
                 return;
             }
 
-            var label = button.GetComponentInChildren<Text>(true);
+            var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
             if (label != null)
             {
                 label.fontSize = fontSize;

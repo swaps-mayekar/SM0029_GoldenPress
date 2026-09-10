@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace GoldenPress.EditorTools
 {
     /// <summary>
-    /// Persists authored Text layout (RectTransform + fontSize) across UI rebakes.
+    /// Persists authored TextMeshPro layout (RectTransform + fontSize) across UI rebakes.
     /// Keys entries by path relative to the canvas root (e.g. SafeRoot/Card/Title).
     /// </summary>
     public static class UiLayoutOverlay
@@ -56,8 +57,14 @@ namespace GoldenPress.EditorTools
                 return;
             }
 
-            var store = Load();
             var captured = Capture(canvasRoot);
+            // Skip empty captures so a migration bake (legacy UI.Text → TMP) does not wipe overrides.
+            if (captured.Count == 0)
+            {
+                return;
+            }
+
+            var store = Load();
             UpsertCanvas(store, canvasName, captured);
             Save(store);
         }
@@ -99,7 +106,7 @@ namespace GoldenPress.EditorTools
 
                 if (entry.hasFontSize)
                 {
-                    var text = target.GetComponent<Text>();
+                    var text = target.GetComponent<TMP_Text>();
                     if (text != null)
                     {
                         text.fontSize = entry.fontSize;
@@ -118,7 +125,7 @@ namespace GoldenPress.EditorTools
         public static List<TextLayout> Capture(Transform canvasRoot)
         {
             var list = new List<TextLayout>();
-            var texts = canvasRoot.GetComponentsInChildren<Text>(true);
+            var texts = canvasRoot.GetComponentsInChildren<TMP_Text>(true);
             foreach (var text in texts)
             {
                 var rt = text.rectTransform;
@@ -141,7 +148,7 @@ namespace GoldenPress.EditorTools
                     anchoredPosY = rt.anchoredPosition.y,
                     sizeDeltaX = rt.sizeDelta.x,
                     sizeDeltaY = rt.sizeDelta.y,
-                    fontSize = text.fontSize,
+                    fontSize = Mathf.RoundToInt(text.fontSize),
                     hasFontSize = true
                 });
             }

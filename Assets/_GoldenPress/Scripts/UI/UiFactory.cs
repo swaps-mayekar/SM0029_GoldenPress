@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,8 +52,8 @@ namespace GoldenPress.UI
 
         private static Sprite _whiteSprite;
 
-        /// <summary>Body / HUD copy — Liberation Sans Bold.</summary>
-        public static Font BodyFont
+        /// <summary>Body / HUD copy — Liberation Sans SDF (bold style).</summary>
+        public static TMP_FontAsset BodyFont
         {
             get
             {
@@ -61,30 +62,20 @@ namespace GoldenPress.UI
                     return _bodyFont;
                 }
 
-                _bodyFont = Resources.Load<Font>("Fonts/LiberationSans-Bold");
+                _bodyFont = Resources.Load<TMP_FontAsset>("Fonts/LiberationSans-Bold SDF");
                 if (_bodyFont == null)
                 {
-                    _bodyFont = Resources.Load<Font>("Fonts/LiberationSans-Regular");
-                }
-
-                if (_bodyFont == null)
-                {
-                    _bodyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                }
-
-                if (_bodyFont == null)
-                {
-                    _bodyFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                    _bodyFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
                 }
 
                 return _bodyFont;
             }
         }
 
-        private static Font _bodyFont;
+        private static TMP_FontAsset _bodyFont;
 
-        /// <summary>Titles, headings, and button labels — Cinzel Extra Bold.</summary>
-        public static Font TitleFont
+        /// <summary>Titles, headings, and button labels — Cinzel Extra Bold SDF.</summary>
+        public static TMP_FontAsset TitleFont
         {
             get
             {
@@ -93,15 +84,15 @@ namespace GoldenPress.UI
                     return _titleFont;
                 }
 
-                _titleFont = Resources.Load<Font>("Fonts/Cinzel-ExtraBold");
+                _titleFont = Resources.Load<TMP_FontAsset>("Fonts/Cinzel-ExtraBold SDF");
                 return _titleFont != null ? _titleFont : BodyFont;
             }
         }
 
-        private static Font _titleFont;
+        private static TMP_FontAsset _titleFont;
 
         /// <summary>Alias for body face (legacy call sites).</summary>
-        public static Font DefaultFont => BodyFont;
+        public static TMP_FontAsset DefaultFont => BodyFont;
     }
 
     public enum UiFontRole
@@ -208,24 +199,60 @@ namespace GoldenPress.UI
             return bg.rectTransform;
         }
 
-        public static Text CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal, UiFontRole role = UiFontRole.Body)
+        public static TextMeshProUGUI CreateText(Transform parent, string name, string content, int fontSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal, UiFontRole role = UiFontRole.Body)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             var rt = go.GetComponent<RectTransform>();
             rt.SetParent(parent, false);
             Stretch(rt);
 
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = role == UiFontRole.Title ? GameTheme.TitleFont : GameTheme.BodyFont;
             text.text = content;
             text.fontSize = fontSize;
             text.color = color;
-            text.alignment = anchor;
-            text.fontStyle = style;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.alignment = ToTmpAlignment(anchor);
+            text.fontStyle = ToTmpFontStyle(style, role);
+            text.enableWordWrapping = true;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.richText = false;
             text.raycastTarget = false;
             return text;
+        }
+
+        public static TextAlignmentOptions ToTmpAlignment(TextAnchor anchor)
+        {
+            switch (anchor)
+            {
+                case TextAnchor.UpperLeft: return TextAlignmentOptions.TopLeft;
+                case TextAnchor.UpperCenter: return TextAlignmentOptions.Top;
+                case TextAnchor.UpperRight: return TextAlignmentOptions.TopRight;
+                case TextAnchor.MiddleLeft: return TextAlignmentOptions.Left;
+                case TextAnchor.MiddleCenter: return TextAlignmentOptions.Center;
+                case TextAnchor.MiddleRight: return TextAlignmentOptions.Right;
+                case TextAnchor.LowerLeft: return TextAlignmentOptions.BottomLeft;
+                case TextAnchor.LowerCenter: return TextAlignmentOptions.Bottom;
+                case TextAnchor.LowerRight: return TextAlignmentOptions.BottomRight;
+                default: return TextAlignmentOptions.Left;
+            }
+        }
+
+        public static FontStyles ToTmpFontStyle(FontStyle style, UiFontRole role)
+        {
+            // Body previously used LiberationSans-Bold TTF; keep that weight when the atlas is Regular.
+            var styles = FontStyles.Normal;
+            if (style == FontStyle.Bold || style == FontStyle.BoldAndItalic ||
+                (role == UiFontRole.Body && GameTheme.BodyFont != null && !GameTheme.BodyFont.name.Contains("Bold")))
+            {
+                styles |= FontStyles.Bold;
+            }
+
+            if (style == FontStyle.Italic || style == FontStyle.BoldAndItalic)
+            {
+                styles |= FontStyles.Italic;
+            }
+
+            return styles;
         }
 
         public static Button CreateButton(Transform parent, string name, string label, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)

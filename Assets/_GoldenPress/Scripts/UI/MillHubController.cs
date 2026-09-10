@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using GoldenPress.Core;
 using GoldenPress.Gameplay;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -12,13 +13,13 @@ namespace GoldenPress.UI
     public sealed class MillHubController : MonoBehaviour
     {
         [Header("Authored UI")]
-        [SerializeField] private Text moneyText;
-        [SerializeField] private Text orderText;
-        [SerializeField] private Text storageText;
-        [SerializeField] private Text tutorialText;
-        [SerializeField] private Text statusText;
-        [SerializeField] private Text unlockText;
-        [SerializeField] private Text orderDetailBody;
+        [SerializeField] private TextMeshProUGUI moneyText;
+        [SerializeField] private TextMeshProUGUI orderText;
+        [SerializeField] private TextMeshProUGUI storageText;
+        [SerializeField] private TextMeshProUGUI tutorialText;
+        [SerializeField] private TextMeshProUGUI statusText;
+        [SerializeField] private TextMeshProUGUI unlockText;
+        [SerializeField] private TextMeshProUGUI orderDetailBody;
         [SerializeField] private Button inspectButton;
         [SerializeField] private Button produceButton;
         [SerializeField] private Button fulfillButton;
@@ -29,7 +30,7 @@ namespace GoldenPress.UI
         [SerializeField] private GameObject upgradePanel;
         [SerializeField] private GameObject tutorialBlocker;
         [SerializeField] private List<Button> upgradeButtons = new List<Button>();
-        [SerializeField] private List<Text> upgradeLabels = new List<Text>();
+        [SerializeField] private List<TextMeshProUGUI> upgradeLabels = new List<TextMeshProUGUI>();
         [SerializeField] private RectTransform punchTarget;
 
         private GameSession _session;
@@ -246,7 +247,7 @@ namespace GoldenPress.UI
 
             bool tutorial = _session.Tutorial.IsActive;
             var fee = GetCurrentProcessingFee();
-            var produceLabel = produceButton.GetComponentInChildren<Text>();
+            var produceLabel = produceButton.GetComponentInChildren<TextMeshProUGUI>();
             if (produceLabel != null)
             {
                 produceLabel.text = _session.Production.HasActiveSession
@@ -336,7 +337,7 @@ namespace GoldenPress.UI
             tutorialBlocker = refs.TutorialBlocker;
             punchTarget = refs.PunchTarget;
             upgradeButtons = new List<Button>(refs.UpgradeButtons);
-            upgradeLabels = new List<Text>(refs.UpgradeLabels);
+            upgradeLabels = new List<TextMeshProUGUI>(refs.UpgradeLabels);
 
             var close = refs.OrderPanel != null
                 ? refs.OrderPanel.transform.Find("OrderDetail/Close")?.GetComponent<Button>()

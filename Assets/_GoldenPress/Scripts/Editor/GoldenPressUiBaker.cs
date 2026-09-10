@@ -1,12 +1,14 @@
 using System.IO;
 using GoldenPress.Bootstrap;
 using GoldenPress.UI;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace GoldenPress.EditorTools
 {
@@ -23,7 +25,7 @@ namespace GoldenPress.EditorTools
         public static void BakeAuthoredUiIntoScenes()
         {
             EnsureWhiteSpriteAsset();
-            EnsureCinzelInResources();
+            EnsureTmpFontsInResources();
             AssetDatabase.Refresh();
             ArtCatalog.Warm();
 
@@ -39,14 +41,14 @@ namespace GoldenPress.EditorTools
         [MenuItem("Golden Press/Apply UI Fonts (Cinzel + Liberation)")]
         public static void ApplyUiFontsToScenes()
         {
-            EnsureCinzelInResources();
+            EnsureTmpFontsInResources();
             AssetDatabase.Refresh();
 
             var title = LoadTitleFont();
             var body = LoadBodyFont();
             if (title == null || body == null)
             {
-                Debug.LogError("Golden Press: missing Cinzel-ExtraBold or LiberationSans-Bold font assets.");
+                Debug.LogError("Golden Press: missing Cinzel-ExtraBold SDF or LiberationSans SDF font assets.");
                 return;
             }
 
@@ -55,24 +57,29 @@ namespace GoldenPress.EditorTools
             ApplyFontsInScene("2_ProductionScene", title, body);
             EditorSceneManager.SaveOpenScenes();
             AssetDatabase.SaveAssets();
-            Debug.Log("Golden Press: applied Cinzel Extra Bold to titles/headings/buttons and Liberation Sans Bold to body text.");
+            Debug.Log("Golden Press: applied Cinzel Extra Bold SDF to titles/headings/buttons and Liberation Sans SDF to body text.");
         }
 
-        private static Font LoadTitleFont()
+        private static TMP_FontAsset LoadTitleFont()
         {
-            var fromResources = Resources.Load<Font>("Fonts/Cinzel-ExtraBold");
+            var fromResources = Resources.Load<TMP_FontAsset>("Fonts/Cinzel-ExtraBold SDF");
             if (fromResources != null) return fromResources;
-            return AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/Font/Cinzel-ExtraBold.ttf");
+            return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Art/Font/Cinzel-ExtraBold SDF.asset");
         }
 
-        private static Font LoadBodyFont()
+        private static TMP_FontAsset LoadBodyFont()
         {
-            var fromResources = Resources.Load<Font>("Fonts/LiberationSans-Bold");
-            if (fromResources != null) return fromResources;
-            return AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/Font/LiberationSans-Bold.ttf");
+            var bold = Resources.Load<TMP_FontAsset>("Fonts/LiberationSans-Bold SDF");
+            if (bold != null) return bold;
+            bold = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Art/Font/LiberationSans-Bold SDF.asset");
+            if (bold != null) return bold;
+            var regular = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+            if (regular != null) return regular;
+            return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
         }
 
-        private static void ApplyFontsInScene(string sceneName, Font title, Font body)
+        private static void ApplyFontsInScene(string sceneName, TMP_FontAsset title, TMP_FontAsset body)
         {
             var path = $"{ScenesFolder}/{sceneName}.unity";
             if (!File.Exists(path))
@@ -81,7 +88,7 @@ namespace GoldenPress.EditorTools
             }
 
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
-            var texts = Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var texts = Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             int changed = 0;
             foreach (var text in texts)
             {
@@ -97,12 +104,12 @@ namespace GoldenPress.EditorTools
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"Golden Press: updated {changed} Text components in {sceneName}.");
+            Debug.Log($"Golden Press: updated {changed} TMP text components in {sceneName}.");
         }
 
-        private static UiFontRole ResolveFontRole(UnityEngine.UI.Text text)
+        private static UiFontRole ResolveFontRole(TextMeshProUGUI text)
         {
-            if (text.GetComponentInParent<UnityEngine.UI.Button>(true) != null)
+            if (text.GetComponentInParent<Button>(true) != null)
             {
                 return UiFontRole.Title;
             }
@@ -128,21 +135,38 @@ namespace GoldenPress.EditorTools
             return UiFontRole.Body;
         }
 
-        private static void EnsureCinzelInResources()
+        private static void EnsureTmpFontsInResources()
         {
-            var dest = "Assets/_GoldenPress/Resources/Fonts/Cinzel-ExtraBold.ttf";
-            var src = "Assets/Art/Font/Cinzel-ExtraBold.ttf";
+            EnsureResourceCopy(
+                "Assets/Art/Font/Cinzel-ExtraBold SDF.asset",
+                "Assets/_GoldenPress/Resources/Fonts/Cinzel-ExtraBold SDF.asset");
+        }
+
+        private static void EnsureResourceCopy(string src, string dest)
+        {
             if (!File.Exists(src))
             {
-                Debug.LogWarning("Golden Press: Cinzel-ExtraBold.ttf not found in Assets/Art/Font.");
+                Debug.LogWarning($"Golden Press: missing font asset at {src}");
                 return;
             }
 
-            if (!File.Exists(dest))
+            if (File.Exists(dest))
             {
-                File.Copy(src, dest, false);
-                AssetDatabase.ImportAsset(dest);
+                return;
             }
+
+            var folder = Path.GetDirectoryName(dest);
+            if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            AssetDatabase.CopyAsset(src, dest);
+        }
+
+        private static void EnsureCinzelInResources()
+        {
+            EnsureTmpFontsInResources();
         }
 
         /// <summary>Batch-mode entry: Unity -batchmode -executeMethod GoldenPress.EditorTools.GoldenPressUiBaker.BakeAuthoredUiIntoScenesBatch</summary>
