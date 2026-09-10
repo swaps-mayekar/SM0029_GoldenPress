@@ -8,6 +8,8 @@ namespace GoldenPress.UI
     /// <summary>
     /// Builds static UI hierarchies for scene authoring. Controllers bind to the resulting refs
     /// and only refresh text / wire clicks at runtime. Minigame stage content stays dynamic.
+    /// Text position/size polish is persisted across rebakes via UiLayoutOverrides.json
+    /// (see GoldenPress.EditorTools.UiLayoutOverlay).
     /// </summary>
     public static class UiSceneBuilders
     {
@@ -69,22 +71,29 @@ namespace GoldenPress.UI
             UiFactory.CreateArtImage(card, "Logo", ArtCatalog.LogoMark,
                 new Vector2(0.38f, 0.78f), new Vector2(0.62f, 0.94f), Vector2.zero, Vector2.zero);
 
-            var title = UiFactory.CreateText(card, "Title", "Golden Press", 64, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
+            var title = UiFactory.CreateText(card, "Title", "Golden Press", 100, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
             UiFactory.Place(title.rectTransform, 0.08f, 0.64f, 0.92f, 0.78f);
 
-            var hook = UiFactory.CreateText(card, "Hook", "Father's mill is yours now.", 34, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
+            var hook = UiFactory.CreateText(card, "Hook", "Father's mill is yours now.", 50, GameTheme.WoodDark, TextAnchor.MiddleCenter, FontStyle.Normal, UiFontRole.Title);
             UiFactory.Place(hook.rectTransform, 0.08f, 0.52f, 0.92f, 0.64f);
 
             var story = UiFactory.CreateText(card, "Story",
                 "After Father suddenly passes away, you take over his small traditional wooden oil mill in town.\n\nOne customer order is already waiting.",
-                26, GameTheme.TextMuted, TextAnchor.UpperCenter, FontStyle.Normal, UiFontRole.Body);
-            UiFactory.Place(story.rectTransform, 0.1f, 0.22f, 0.9f, 0.52f);
+                40, GameTheme.TextMuted, TextAnchor.UpperCenter, FontStyle.Normal, UiFontRole.Body);
+            // Authored layout (also persisted in UiLayoutOverrides.json for rebakes).
+            story.rectTransform.anchorMin = Vector2.zero;
+            story.rectTransform.anchorMax = Vector2.one;
+            story.rectTransform.anchoredPosition = new Vector2(0f, -96.5f);
+            story.rectTransform.sizeDelta = new Vector2(-400f, -521f);
 
-            var status = UiFactory.CreateText(root, "Status", "Tap below when you are ready.", 26, Color.white, TextAnchor.LowerCenter);
+            var status = UiFactory.CreateText(root, "Status", "Tap below when you are ready.", 35, Color.white, TextAnchor.LowerCenter);
             UiFactory.Place(status.rectTransform, 0.15f, 0.14f, 0.85f, 0.22f);
+            status.rectTransform.anchoredPosition = new Vector2(0f, -12.620087f);
+            status.rectTransform.sizeDelta = new Vector2(0f, -25.2401f);
 
             var begin = UiFactory.CreateButton(root, "BeginButton", "Enter the Mill", GameTheme.Accent,
                 new Vector2(0.32f, 0.04f), new Vector2(0.68f, 0.12f), Vector2.zero, Vector2.zero);
+            begin.GetComponentInChildren<Text>().fontSize = 50;
 
             return new SplashRefs
             {
@@ -152,7 +161,7 @@ namespace GoldenPress.UI
             refs.OrderText = UiFactory.CreateText(card, "OrderBody", "", 26, GameTheme.TextDark, TextAnchor.MiddleLeft);
             UiFactory.Place(refs.OrderText.rectTransform, 0.05f, 0.08f, 0.76f, 0.70f);
 
-            // Actions
+            // Actions — hub button labels authored at 40 (overrides also in UiLayoutOverrides.json)
             refs.InspectButton = UiFactory.CreateButton(root, "InspectButton", "View Order", GameTheme.Accent,
                 new Vector2(0.05f, 0.03f), new Vector2(0.26f, 0.11f), Vector2.zero, Vector2.zero);
             refs.ProduceButton = UiFactory.CreateButton(root, "ProduceButton", "Make Oil", GameTheme.Wood,
@@ -161,6 +170,10 @@ namespace GoldenPress.UI
                 new Vector2(0.51f, 0.03f), new Vector2(0.72f, 0.11f), Vector2.zero, Vector2.zero);
             refs.UpgradesButton = UiFactory.CreateButton(root, "UpgradesButton", "Upgrades", GameTheme.PanelDark,
                 new Vector2(0.74f, 0.03f), new Vector2(0.95f, 0.11f), Vector2.zero, Vector2.zero);
+            SetButtonLabelSize(refs.InspectButton, 40);
+            SetButtonLabelSize(refs.ProduceButton, 40);
+            SetButtonLabelSize(refs.FulfillButton, 40);
+            SetButtonLabelSize(refs.UpgradesButton, 40);
 
             // Tutorial banner — left column above mill art
             var banner = UiFactory.CreateFramedPanel(root, "TutorialBanner",
@@ -179,8 +192,9 @@ namespace GoldenPress.UI
             PlaceLabel(orderDetail, "Title", "Pending Customer Order", 34, GameTheme.WoodDark, 0.58f, 0.72f);
             refs.OrderDetailBody = UiFactory.CreateText(orderDetail, "OrderDetailBody", "", 28, GameTheme.TextDark, TextAnchor.MiddleCenter);
             UiFactory.Place(refs.OrderDetailBody.rectTransform, 0.1f, 0.28f, 0.9f, 0.58f);
-            UiFactory.CreateButton(orderDetail, "Close", "Got it", GameTheme.Accent,
+            var closeOrder = UiFactory.CreateButton(orderDetail, "Close", "Got it", GameTheme.Accent,
                 new Vector2(0.3f, 0.08f), new Vector2(0.7f, 0.22f), Vector2.zero, Vector2.zero);
+            SetButtonLabelSize(closeOrder, 40);
             refs.OrderPanel.SetActive(false);
 
             // Upgrade overlay
@@ -237,7 +251,7 @@ namespace GoldenPress.UI
             header.rectTransform.offsetMin = new Vector2(20, 0);
             score.rectTransform.offsetMax = new Vector2(-20, 0);
 
-            var hint = UiFactory.CreateText(root, "Hint", "", 26, GameTheme.TextDark, TextAnchor.MiddleCenter);
+            var hint = UiFactory.CreateText(root, "Hint", "", 40, GameTheme.TextDark, TextAnchor.MiddleCenter);
             UiFactory.Place(hint.rectTransform, 0.1f, 0.78f, 0.9f, 0.86f);
 
             var stageRoot = UiFactory.CreatePanel(root, "StageRoot", Color.clear,
@@ -253,6 +267,9 @@ namespace GoldenPress.UI
 
             var exitButton = UiFactory.CreateButton(root, "Exit", "Back", GameTheme.Wood,
                 new Vector2(0.03f, 0.03f), new Vector2(0.15f, 0.12f), Vector2.zero, Vector2.zero);
+            SetButtonLabelSize(continueButton, 40);
+            SetButtonLabelSize(retryButton, 40);
+            SetButtonLabelSize(exitButton, 40);
 
             return new ProductionRefs
             {
@@ -271,6 +288,20 @@ namespace GoldenPress.UI
         {
             var text = UiFactory.CreateText(parent, name, content, size, color, anchor, FontStyle.Normal, UiFontRole.Title);
             UiFactory.Place(text.rectTransform, 0.05f, minY, 0.95f, maxY);
+        }
+
+        private static void SetButtonLabelSize(Button button, int fontSize)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var label = button.GetComponentInChildren<Text>(true);
+            if (label != null)
+            {
+                label.fontSize = fontSize;
+            }
         }
 
         private static void ClearExistingCanvas(Transform host, string canvasName)

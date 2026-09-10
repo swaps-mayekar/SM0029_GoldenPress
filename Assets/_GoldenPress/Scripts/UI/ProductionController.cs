@@ -405,6 +405,9 @@ namespace GoldenPress.UI
             _label = UiFactory.CreateText(transform, "Label", "Hold to press Father's mill", 28, GameTheme.TextDark, TextAnchor.MiddleCenter);
             _label.rectTransform.anchorMin = new Vector2(0.2f, 0.36f);
             _label.rectTransform.anchorMax = new Vector2(0.8f, 0.46f);
+            // Nudge below press art so status copy doesn't overlap the wood base.
+            _label.rectTransform.offsetMin = new Vector2(0f, -10f);
+            _label.rectTransform.offsetMax = new Vector2(0f, -10f);
 
             var holdButton = UiFactory.CreateButton(transform, "HoldArea", "Hold to Press", GameTheme.Wood,
                 new Vector2(0.3f, 0.05f), new Vector2(0.7f, 0.16f), Vector2.zero, Vector2.zero);

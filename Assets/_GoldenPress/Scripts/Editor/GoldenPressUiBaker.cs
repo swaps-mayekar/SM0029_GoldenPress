@@ -12,7 +12,8 @@ namespace GoldenPress.EditorTools
 {
     /// <summary>
     /// One-shot bake of static UI into scenes so layout can be edited in the Hierarchy.
-    /// Re-running replaces existing SplashCanvas / MillCanvas / ProductionCanvas hierarchies.
+    /// Re-running replaces existing SplashCanvas / MillCanvas / ProductionCanvas hierarchies,
+    /// then reapplies persisted text layout overrides (see UiLayoutOverlay).
     /// </summary>
     public static class GoldenPressUiBaker
     {
@@ -32,7 +33,7 @@ namespace GoldenPress.EditorTools
 
             EditorSceneManager.SaveOpenScenes();
             AssetDatabase.SaveAssets();
-            Debug.Log("Golden Press: authored UI baked into Splash, Mill, and Production scenes. Adjust RectTransforms in the Hierarchy to fix overlap.");
+            Debug.Log("Golden Press: authored UI baked into Splash, Mill, and Production scenes. Text position/size overrides were preserved via UiLayoutOverrides.json.");
         }
 
         [MenuItem("Golden Press/Apply UI Fonts (Cinzel + Liberation)")]
@@ -162,6 +163,15 @@ namespace GoldenPress.EditorTools
 
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
             var root = EnsureSceneShell(scene, kind);
+            var canvasName = CanvasNameFor(kind);
+
+            // Capture current Hierarchy text layout before the canvas is destroyed,
+            // then merge into the persisted override file.
+            var existingCanvas = FindCanvas(root.transform, canvasName);
+            if (existingCanvas != null)
+            {
+                UiLayoutOverlay.CaptureAndMerge(existingCanvas, canvasName);
+            }
 
             switch (kind)
             {
@@ -169,7 +179,8 @@ namespace GoldenPress.EditorTools
                 {
                     var controller = root.GetComponent<SplashController>() ?? root.AddComponent<SplashController>();
                     var refs = UiSceneBuilders.BuildSplash(root.transform);
-                    AttachSafeArea(root.transform, "SplashCanvas");
+                    AttachSafeArea(root.transform, canvasName);
+                    UiLayoutOverlay.Apply(FindCanvas(root.transform, canvasName), canvasName);
                     controller.ApplyAuthoredRefs(refs);
                     EditorUtility.SetDirty(controller);
                     break;
@@ -178,7 +189,8 @@ namespace GoldenPress.EditorTools
                 {
                     var controller = root.GetComponent<MillHubController>() ?? root.AddComponent<MillHubController>();
                     var refs = UiSceneBuilders.BuildMillHub(root.transform);
-                    AttachSafeArea(root.transform, "MillCanvas");
+                    AttachSafeArea(root.transform, canvasName);
+                    UiLayoutOverlay.Apply(FindCanvas(root.transform, canvasName), canvasName);
                     controller.ApplyAuthoredRefs(refs);
                     EditorUtility.SetDirty(controller);
                     break;
@@ -187,7 +199,8 @@ namespace GoldenPress.EditorTools
                 {
                     var controller = root.GetComponent<ProductionController>() ?? root.AddComponent<ProductionController>();
                     var refs = UiSceneBuilders.BuildProduction(root.transform);
-                    AttachSafeArea(root.transform, "ProductionCanvas");
+                    AttachSafeArea(root.transform, canvasName);
+                    UiLayoutOverlay.Apply(FindCanvas(root.transform, canvasName), canvasName);
                     controller.ApplyAuthoredRefs(refs);
                     EditorUtility.SetDirty(controller);
                     break;
@@ -196,6 +209,27 @@ namespace GoldenPress.EditorTools
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
+        }
+
+        private static string CanvasNameFor(SceneEntryPoint.SceneKind kind)
+        {
+            switch (kind)
+            {
+                case SceneEntryPoint.SceneKind.Splash: return "SplashCanvas";
+                case SceneEntryPoint.SceneKind.MainMill: return "MillCanvas";
+                case SceneEntryPoint.SceneKind.Production: return "ProductionCanvas";
+                default: return null;
+            }
+        }
+
+        private static Transform FindCanvas(Transform host, string canvasName)
+        {
+            if (host == null || string.IsNullOrEmpty(canvasName))
+            {
+                return null;
+            }
+
+            return host.Find(canvasName);
         }
 
         private static void AttachSafeArea(Transform host, string canvasName)
