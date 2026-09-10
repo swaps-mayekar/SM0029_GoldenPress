@@ -42,6 +42,11 @@ namespace GoldenPress.UI
             Get("family_shop");
             Get("oil_bottle");
             Get("groundnuts");
+            Get("sunflower");
+            Get("mustard");
+            Get("sesame");
+            Get("coconut");
+            Get("soybean");
             Get("debris");
             Get("logo_mark");
             Get("basket");
@@ -72,7 +77,17 @@ namespace GoldenPress.UI
 
         public static Sprite SeedForOil(string oilId)
         {
-            // Shared seed art for vertical slice; oil color tints applied by callers.
+            // Oil ids match Resources/Art filenames except groundnut → groundnuts.
+            var resourceName = oilId == "groundnut" ? "groundnuts" : oilId;
+            if (!string.IsNullOrEmpty(resourceName))
+            {
+                var seed = Get(resourceName);
+                if (seed != null)
+                {
+                    return seed;
+                }
+            }
+
             return Groundnuts != null ? Groundnuts : GameTheme.WhiteSprite;
         }
     }
